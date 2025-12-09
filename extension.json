@@ -1,0 +1,123 @@
+{
+	"name": "sc-maker",
+	"uuid": "b65baa01e4b94d6aa7c8920e4b9c4d9a",
+	"displayName": "ScMake",
+	"description": "嘉立创EDA & EasyEDA 专业版扩展 API 开发工具",
+	"version": "1.0.0",
+	"publisher": "JLCEDA <support@lceda.cn>",
+	"engines": {
+		"eda": "^2.3.0"
+	},
+	"license": "Apache-2.0",
+	"repository": {
+		"type": "extension-store",
+		"url": ""
+	},
+	"categories": "Other",
+	"keywords": [
+		"SDK"
+	],
+	"images": {
+		"logo": "./images/logo.png"
+	},
+	"homepage": "https://pro.lceda.cn",
+	"bugs": "https://lceda.cn/page/feedback?originPage=other",
+	"activationEvents": {},
+	"entry": "./dist/index",
+	"dependentExtensions": {},
+	"headerMenus": {
+		"home": [
+			{
+				"id": "ScMake",
+				"title": "ScMake",
+				"menuItems": [
+					{
+						"id": "Interface",
+						"title": "Interface",
+						"registerFn": "openInterface"
+					},
+					{
+						"id": "Export",
+						"title": "Export",
+						"menuItems": [
+							{
+								"id": "ExportBomGOST",
+								"title": "Elements List GOST",
+								"registerFn": "exportBomGOST"
+							}
+						]
+					},
+					{
+						"id": "Import",
+						"title": "Import",
+						"menuItems": [
+							{
+								"id": "ImportCircuit",
+								"title": "Import circuit",
+								"registerFn": "importCircuit"
+							}
+						]
+					},
+					{
+						"id": "About",
+						"title": "About...",
+						"registerFn": "about"
+					}
+				]
+			}
+		],
+		"sch": [
+			{
+				"id": "ScMake",
+				"title": "ScMake",
+				"menuItems": [
+					{
+						"id": "Interface",
+						"title": "Interface",
+						"registerFn": "openInterface"
+					},
+					{
+						"id": "Export",
+						"title": "Export",
+						"menuItems": [
+							{
+								"id": "ExportBomGOST",
+								"title": "Elements List GOST",
+								"registerFn": "exportBomGOST"
+							}
+						]
+					},
+					{
+						"id": "Import",
+						"title": "Import",
+						"menuItems": [
+							{
+								"id": "ImportCircuit",
+								"title": "Import circuit",
+								"registerFn": "importCircuit"
+							}
+						]
+					},
+					{
+						"id": "About",
+						"title": "About...",
+						"registerFn": "about"
+					}
+				]
+			}
+		],
+		"pcb": [
+			{
+				"id": "ScMake",
+				"title": "ScMake",
+				"menuItems": [
+					{
+						"id": "About",
+						"title": "About...",
+						"registerFn": "about"
+					}
+				]
+			}
+		]
+	}
+}

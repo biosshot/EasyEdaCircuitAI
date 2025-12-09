@@ -1,0 +1,63 @@
+{
+	"name": "ScMake",
+	"version": "1.1.1",
+	"description": "嘉立创EDA & EasyEDA 专业版扩展 API 开发工具",
+	"author": "JLCEDA <support@lceda.cn>",
+	"license": "Apache-2.0",
+	"homepage": "https://pro.lceda.cn/",
+	"scripts": {
+		"dev": "vite",
+		"build:vite": "vite build",
+		"compile": "rimraf ./dist/ && ts-node ./config/esbuild.prod.ts",
+		"prepare": "husky",
+		"eslint:all": "eslint --ext .ts --fix .",
+		"build": "npm run build:vite && npm run compile && ts-node ./build/packaged.ts"
+	},
+	"devDependencies": {
+		"@jlceda/pro-api-types": "^0.1.175",
+		"@microsoft/tsdoc": "^0.15.1",
+		"@trivago/prettier-plugin-sort-imports": "^5.2.1",
+		"@types/fontkit": "^2.0.8",
+		"@types/fs-extra": "^11.0.4",
+		"@types/papaparse": "^5.5.1",
+		"@typescript-eslint/eslint-plugin": "^7.18.0",
+		"@typescript-eslint/parser": "^7.18.0",
+		"@vitejs/plugin-vue": "^6.0.1",
+		"esbuild": "^0.24.2",
+		"eslint": "^8.57.0",
+		"eslint-config-alloy": "^5.1.2",
+		"eslint-plugin-tsdoc": "^0.4.0",
+		"fs-extra": "^11.3.0",
+		"husky": "^9.1.7",
+		"ignore": "^7.0.3",
+		"jszip": "^3.10.1",
+		"lint-staged": "^15.3.0",
+		"prettier": "^3.4.2",
+		"rimraf": "^6.0.1",
+		"terser": "^5.44.0",
+		"ts-node": "^10.9.2",
+		"typescript": "^5.7.3",
+		"vite": "^7.1.12"
+	},
+	"lint-staged": {
+		"*.ts": "eslint --cache --fix",
+		"*.{js,ts,html,css,json,md}": "prettier --write"
+	},
+	"engines": {
+		"node": ">=20.5.0"
+	},
+	"dependencies": {
+		"@langchain/core": "^1.0.2",
+		"@langchain/langgraph": "^1.0.1",
+		"@langchain/openai": "^1.0.0",
+		"dompurify": "^3.3.0",
+		"fontkit": "^2.0.4",
+		"highlight.js": "^11.11.1",
+		"lucide-vue-next": "^0.552.0",
+		"marked": "^16.4.1",
+		"papaparse": "^5.5.3",
+		"pdf-lib": "^1.17.1",
+		"pinia": "^3.0.3",
+		"vue": "^3.5.22"
+	}
+}
