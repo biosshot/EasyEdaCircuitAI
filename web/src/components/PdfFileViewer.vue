@@ -122,7 +122,7 @@ onBeforeUnmount(() => {
     border-radius: 6px;
 }
 </style>
- 
+
 <style scoped>
 .pdf-file-viewer {
     display: flex;
@@ -138,12 +138,12 @@ onBeforeUnmount(() => {
 }
 
 .pdf-header .name {
-    color: #e5e7eb;
+    color: var(--color-text-secondary);
 }
 
 .download {
-    background: #2563eb;
-    color: white;
+    background: var(--color-secondary);
+    color: var(--color-text-on-primary);
     padding: 0.35rem 0.6rem;
     border-radius: 6px;
     text-decoration: none;
@@ -164,6 +164,6 @@ onBeforeUnmount(() => {
 }
 
 .no-url {
-    color: #94a3b8;
+    color: var(--color-text-tertiary);
 }
 </style>

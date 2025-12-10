@@ -1,126 +1,36 @@
 <template>
-    <div class="chat-controls-wrapper">
-        <button class="chat-control-btn" :disabled="newChatDisabled" @click="createNewChat" title="New chat">
-            <Icon name="Plus" size="14" />
+    <div class="controls-wrapper">
+        <button class="control-btn" :disabled="newChatDisabled" @click="resetSettings"
+            title="Reset settings to default">
+            <Icon name="ListRestart" size="14" />
         </button>
-        <button class="chat-control-btn" @click="toggleChatHistory" title="Chat history">
-            <Icon name="History" size="14" />
-        </button>
-
-        <!-- Context menu for chat history -->
-        <div v-if="showChatHistory" class="chat-history-menu">
-            <div class="history-header">
-                <h3>Chat History</h3>
-                <button class="close-btn" @click="showChatHistory = false">
-                    <Icon name="X" size="12" />
-                </button>
-            </div>
-
-            <div class="history-list">
-                <div v-if="allChats.length === 0" class="empty-history">
-                    <p>No chats yet</p>
-                </div>
-                <div v-for="chat in allChats" :key="chat.id" class="history-item">
-                    <button class="history-item-content" :class="{ active: chat.id === historyStore.currentChatId }"
-                        @click="switchToChat(chat.id)">
-                        <span class="history-item-title">{{ chat.title }}</span>
-                        <span class="history-item-count">{{ chat.messages.length }}</span>
-                    </button>
-                    <button class="delete-btn" @click="deleteChat(chat.id)" :disabled="isLoading">
-                        <Icon name="Trash2" size="11" />
-                    </button>
-                </div>
-            </div>
-
-            <div v-if="allChats.length > 0" class="history-footer">
-                <button class="clear-all-btn" @click="clearAllChats">Clear all</button>
-            </div>
-        </div>
     </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
-import { useAppStore } from '../stores/appStore';
-import { useChatHistoryStore } from '../stores/chatHistoryStore';
+
 import Icon from './Icon.vue';
+import { useSettingsStore } from '../stores/settingsStore';
 
-const store = useAppStore();
-const historyStore = useChatHistoryStore();
-const allChats = computed(() => historyStore.getAllChats());
+const settingsStore = useSettingsStore();
 
-const props = defineProps({
-    isLoading: {
-        type: Boolean,
-        default: false
+const resetSettings = () => {
+    if (confirm('Are you sure you want to reset all settings to default?')) {
+        settingsStore.resetSettings();
     }
-});
+};
 
-const newChatDisabled = computed(() => {
-    return props.isLoading || historyStore.isCurrentChatEmpty();
-});
-
-const showChatHistory = ref(false);
-
-function toggleChatHistory() {
-    showChatHistory.value = !showChatHistory.value;
-}
-
-function createNewChat() {
-    if (props.isLoading) return;
-    // console.log(historyStore.isCurrentChatEmpty());
-
-    if (historyStore.isCurrentChatEmpty() && historyStore.getCurrentChat()) return;
-
-    historyStore.createNewChat();
-    // store.setChatMessages([]);
-    showChatHistory.value = false;
-}
-
-function switchToChat(chatId) {
-    if (props.isLoading) return;
-
-    const success = historyStore.switchToChat(chatId);
-    if (success) {
-        showChatHistory.value = false;
-    }
-}
-
-function deleteChat(chatId) {
-    if (props.isLoading) return;
-
-    historyStore.deleteChat(chatId);
-}
-
-function clearAllChats() {
-    if (props.isLoading) return;
-
-    if (confirm('Are you sure you want to delete all chats?')) {
-        historyStore.clearAllChats();
-        // store.setChatMessages([]);
-        showChatHistory.value = false;
-    }
-}
-
-// defineExpose({
-//     toggleChatHistory,
-//     createNewChat,
-//     switchToChat,
-//     deleteChat,
-//     clearAllChats,
-//     showChatHistory
-// });
 </script>
 
 <style scoped>
-.chat-controls-wrapper {
+.controls-wrapper {
     display: flex;
     gap: 0.25rem;
     align-items: center;
     position: relative;
 }
 
-.chat-control-btn {
+.control-btn {
     /* padding: 0.35rem 0.4rem; */
     background-color: transparent;
     border: none;
@@ -136,12 +46,12 @@ function clearAllChats() {
     height: 25px;
 }
 
-.chat-control-btn:hover:not(:disabled) {
+.control-btn:hover:not(:disabled) {
     background-color: var(--color-surface-active);
     border-color: var(--color-text-tertiary);
 }
 
-.chat-control-btn:disabled {
+.control-btn:disabled {
     opacity: 0.4;
     /* cursor: not-allowed; */
 }

@@ -62,7 +62,7 @@ import { fetchWithTask } from '../fetchWithTask.ts';
 // Состояния (локальные, не из store)
 // ======================
 const showGeneration = ref(false);
-const activeTab = ref('components');
+const activeTab = ref('chat');
 const loading = ref(false);
 const prompt = ref('');
 const selectedOptions = ref(['block-diagram']); // по умолчанию выбираем опцию блок-схемы
@@ -200,8 +200,8 @@ async function startGeneration() {
   } catch (error) {
     console.error('Generation error:', error);
     const errorMsg = error.message || 'Unknown error';
-    generatedContent.value.components = `<p style="color: #ef4444;">Error: ${errorMsg}</p>`;
-    generatedContent.value.functional = `<p style="color: #ef4444;">Generation failed.</p>`;
+    generatedContent.value.components = `<p style="color: var(--color-error);">Error: ${errorMsg}</p>`;
+    generatedContent.value.functional = `<p style="color: var(--color-error);">Generation failed.</p>`;
     // Вкладка "components" уже активна
   } finally {
     loading.value = false;
@@ -219,8 +219,8 @@ function goBack() {
 <style scoped>
 .generate-view {
   padding: 1.5rem;
-  background-color: #111827;
-  color: white;
+  background-color: var(--color-background);
+  color: var(--color-text);
 }
 
 .input-section,
@@ -237,23 +237,23 @@ function goBack() {
 .section h2 {
   margin-bottom: 0.5rem;
   font-size: 1.1rem;
-  color: #e2e8f0;
+  color: var(--color-text-secondary);
 }
 
 textarea {
   width: calc(100% - 1.5rem);
   padding: 0.75rem;
-  background-color: #1e293b;
-  border: 1px solid #334155;
+  background-color: var(--color-background-secondary);
+  border: 1px solid var(--color-border);
   border-radius: 0.5rem;
-  color: white;
+  color: var(--color-text);
   resize: vertical;
   font-family: inherit;
 }
 
 .hint {
   font-size: 0.85rem;
-  color: #f59e0b;
+  color: var(--color-warning);
   margin-top: 0.25rem;
 }
 
@@ -268,10 +268,10 @@ textarea {
   align-items: center;
   gap: 0.75rem;
   padding: 0.75rem 1rem;
-  background-color: #1e293b;
-  border: 1px solid #334155;
+  background-color: var(--color-background-secondary);
+  border: 1px solid var(--color-border);
   border-radius: 0.5rem;
-  color: #94a3b8;
+  color: var(--color-text-tertiary);
   cursor: pointer;
   transition: all 0.2s ease;
   text-align: left;
@@ -279,20 +279,20 @@ textarea {
 }
 
 .option-btn:hover {
-  background-color: #334155;
+  background-color: var(--color-surface-hover);
 }
 
 .option-btn.active {
-  background-color: #16a34a;
-  color: white;
-  border-color: #16a34a;
+  background-color: var(--color-primary);
+  color: var(--color-text-on-primary);
+  border-color: var(--color-primary);
 }
 
 .generate-btn {
   width: 100%;
   padding: 0.75rem;
-  background-color: #16a34a;
-  color: white;
+  background-color: var(--color-primary);
+  color: var(--color-text-on-primary);
   border: none;
   border-radius: 0.5rem;
   cursor: pointer;
@@ -301,15 +301,15 @@ textarea {
 }
 
 .generate-btn:disabled {
-  background-color: #374151;
+  background-color: var(--color-surface-hover);
   cursor: not-allowed;
 }
 
 .back-btn {
   align-self: flex-start;
   padding: 0.5rem 1rem;
-  background-color: #374151;
-  color: #e2e8f0;
+  background-color: var(--color-surface-hover);
+  color: var(--color-text);
   border: none;
   border-radius: 0.375rem;
   cursor: pointer;
@@ -317,7 +317,7 @@ textarea {
 }
 
 .result-panel {
-  background-color: #1e293b;
+  background-color: var(--color-background-secondary);
   border-radius: 0.5rem;
   overflow: hidden;
   flex: 1;
@@ -325,29 +325,29 @@ textarea {
 
 .tabs {
   display: flex;
-  background-color: #334155;
+  background-color: var(--color-surface-hover);
 }
 
 .tab {
   padding: 0.75rem 1.5rem;
   background: transparent;
   border: none;
-  color: #94a3b8;
+  color: var(--color-text-tertiary);
   cursor: pointer;
   transition: all 0.2s ease;
   font-weight: 500;
 }
 
 .tab.active {
-  background-color: #111827;
-  color: white;
-  border-bottom: 2px solid #16a34a;
+  background-color: var(--color-background);
+  color: var(--color-text);
+  border-bottom: 2px solid var(--color-primary);
 }
 
 .content {
   padding: 1.5rem;
   min-height: 200px;
-  background-color: #1e293b;
+  background-color: var(--color-background-secondary);
 }
 
 .content.loading {
@@ -361,8 +361,8 @@ textarea {
 .spinner {
   width: 24px;
   height: 24px;
-  border: 3px solid #334155;
-  border-top: 3px solid #16a34a;
+  border: 3px solid #30363d;
+  border-top: 3px solid #10a37f;
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
@@ -383,6 +383,6 @@ textarea {
   margin-bottom: 24px;
   padding: 20px;
   border-radius: 12px;
-  border-left: 4px solid #16a34a;
+  border-left: 4px solid #10a37f;
 }
 </style>

@@ -2,7 +2,7 @@ import { defineStore } from 'pinia';
 
 export const useAppStore = defineStore('app', {
     state: () => ({
-        activeTab: 'generate',
+        activeTab: 'chat',
     }),
     actions: {
         setActiveTab(tab: string) {

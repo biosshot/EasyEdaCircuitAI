@@ -2,44 +2,59 @@
   <div id="app">
     <Navbar>
       <template #controls v-if="activeTab === 'chat'">
-        <ChatControls ref="chatControlsRef" :is-loading="chatViewRef?.isLoading || false" />
+        <ChatControls :is-loading="chatViewRef?.isLoading || false" />
+      </template>
+      <template #controls v-else-if="activeTab === 'settings'">
+        <SettingsControls />
       </template>
     </Navbar>
 
     <main>
-      <GenerateView v-if="activeTab === 'generate'" />
-      <SearchView v-else-if="activeTab === 'search'" />
-      <DatasheetView v-else-if="activeTab === 'datasheet'" />
-      <ChatView v-else-if="activeTab === 'chat'" ref="chatViewRef" />
+      <!-- <GenerateView v-if="activeTab === 'generate'" /> -->
+      <ChatView v-if="activeTab === 'chat'" ref="chatViewRef" />
       <SettingsView v-else-if="activeTab === 'settings'" />
     </main>
   </div>
 </template>
 
 <script setup>
-import { computed, ref } from 'vue';
+import { computed, ref, onMounted, watchEffect } from 'vue';
 import { useAppStore } from './stores/appStore.ts';
+import { setTheme } from './composables/useTheme.ts';
 import Navbar from './components/Navbar.vue';
 import GenerateView from './components/GenerateView.vue';
-import SearchView from './components/SearchView.vue';
-import DatasheetView from './components/DatasheetView.vue';
 import ChatView from './components/ChatView.vue';
 import ChatControls from './components/ChatControls.vue';
 import SettingsView from './components/SettingsView.vue';
+import './theme/theme-variables.css';
+import { useSettingsStore } from './stores/settingsStore.ts';
+import SettingsControls from './components/SettingsControls.vue';
+
 
 const store = useAppStore();
 // window.store = store;
 
 const activeTab = computed(() => store.activeTab);
 const chatViewRef = ref(null);
-const chatControlsRef = ref(null);
+
+// Инициализировать тему при загрузке приложения
+onMounted(() => {
+  const settingsStore = useSettingsStore();
+  settingsStore.initSettings();
+  setTheme(settingsStore.getSetting('theme') || 'light');
+
+  watchEffect(() => {
+    const theme = settingsStore.getSetting('theme') || 'light';
+    setTheme(theme);
+  });
+});
 </script>
 
 <style>
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background-color: #0f172a;
-  color: white;
+  background-color: var(--color-background);
+  color: var(--color-text);
 }
 
 html,
@@ -82,13 +97,13 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #334155;
+  background: var(--scrollbar-bg);
   border-radius: 10px;
-  border: 2px solid #1e293b;
+  border: 2px solid var(--scrollbar-border);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #475569;
+  background: var(--scrollbar-hover);
 }
 
 ::-webkit-scrollbar-corner {
@@ -97,6 +112,6 @@ body {
 
 /* Дополнительно: при наведении на область прокрутки — улучшаем вид */
 *::-webkit-scrollbar-thumb:active {
-  background: #6b7280;
+  background: var(--scrollbar-active);
 }
 </style>

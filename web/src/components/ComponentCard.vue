@@ -54,22 +54,22 @@ const placeComponent = async () => {
 
 <style scoped>
 .component-card {
-  background-color: #1e2738;
-  border: 1px solid #2a3447;
+  background-color: #161b22;
+  border: 1px solid #30363d;
   border-radius: 8px;
   padding: 16px;
-  color: #e0e0e0;
+  color: #ececf1;
   transition: border-color 0.2s ease;
 }
 
 .component-card:hover {
-  border-color: #4caf50;
+  border-color: #10a37f;
 }
 
 .component-card h4 {
   margin-top: 0;
   margin-bottom: 8px;
-  color: #ffffff;
+  color: #ececf1;
   font-weight: 600;
 }
 
@@ -83,7 +83,7 @@ const placeComponent = async () => {
 }
 
 .datasheet-link a {
-  color: #4caf50;
+  color: #10a37f;
   text-decoration: none;
   font-weight: 500;
 }
@@ -96,22 +96,22 @@ const placeComponent = async () => {
   cursor: pointer;
   margin-top: 12px;
   padding: 8px;
-  background-color: #2a3447;
+  background-color: #30363d;
   border-radius: 4px;
-  color: #ffffff;
+  color: #ececf1;
   font-weight: 500;
   transition: background-color 0.2s;
 }
 
 .pins-details summary:hover {
-  background-color: #3a4a5f;
+  background-color: #40454f;
 }
 
 .pins-list {
   list-style: none;
   padding-left: 0;
   margin-top: 8px;
-  background-color: #1e2738;
+  background-color: #161b22;
   border-radius: 4px;
   padding: 8px;
 }
@@ -119,20 +119,20 @@ const placeComponent = async () => {
 .pin-item {
   margin-bottom: 8px;
   padding: 8px;
-  border-left: 3px solid #4caf50;
-  background-color: #2a3447;
+  border-left: 3px solid #10a37f;
+  background-color: #30363d;
   border-radius: 4px;
 }
 
 .pin-item strong {
-  color: #ffffff;
+  color: #ececf1;
 }
 
 .pin-item em {
   display: block;
   margin-top: 4px;
   font-size: 0.9em;
-  color: #cccccc;
+  color: #a1a7b8;
 }
 
 .place-button {

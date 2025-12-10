@@ -1,10 +1,10 @@
 <template>
   <div class="navbar">
     <div class="tabs">
-      <button :class="['tab', { active: activeTab === 'generate' }]" @click="setActiveTab('generate')">
+      <!-- <button :class="['tab', { active: activeTab === 'generate' }]" @click="setActiveTab('generate')">
         <Icon name="Zap" size="20" />
         <span>Generate</span>
-      </button>
+      </button> -->
       <!-- <button
         :class="['tab', { active: activeTab === 'search' }]"
         @click="setActiveTab('search')"
@@ -20,11 +20,11 @@
         <span>Datasheet</span>
       </button> -->
       <button :class="['tab', { active: activeTab === 'chat' }]" @click="setActiveTab('chat')">
-        <Icon name="MessageSquare" size="20" />
+        <Icon name="MessageSquare" size="14" />
         <span>Chat</span>
       </button>
       <button :class="['tab', { active: activeTab === 'settings' }]" @click="setActiveTab('settings')">
-        <Icon name="Settings" size="20" />
+        <Icon name="Settings" size="14" />
         <span>Settings</span>
       </button>
     </div>
@@ -52,13 +52,13 @@ const setActiveTab = (tab) => {
 
 <style scoped>
 .navbar {
-  background-color: #1e293b;
+  background-color: var(--color-background);
   display: flex;
   /* overflow-x: auto; */
   /* overflow-y: hidden; */
-  border-bottom: 1px solid #334155;
-  min-height: 44px;
-  max-height: 44px;
+  border-bottom: 1px solid var(--color-border);
+  min-height: 32px;
+  max-height: 32px;
 
   align-items: center;
 }
@@ -72,24 +72,6 @@ const setActiveTab = (tab) => {
   gap: 0.5rem;
 }
 
-.logo {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.logo h1 {
-  margin: 0;
-  font-size: 1.2rem;
-  color: white;
-}
-
-.logo p {
-  margin: 0;
-  font-size: 0.8rem;
-  color: #94a3b8;
-}
-
 .tabs {
   display: flex;
   gap: 1.5rem;
@@ -98,20 +80,20 @@ const setActiveTab = (tab) => {
 .tab {
   display: flex;
   align-items: center;
-  padding: 5px 10px;
+  padding: 2px 10px;
   background: transparent;
   border: none;
-  color: #94a3b8;
+  color: var(--color-text-tertiary);
   cursor: pointer;
   font-weight: 500;
 }
 
 .tab:hover {
-  color: #ffffff;
+  color: var(--color-text);
 }
 
 .tab.active {
-  color: #16a34a;
-  border-bottom: 2px solid #16a34a;
+  color: var(--color-primary);
+  border-bottom: 2px solid var(--color-primary);
 }
 </style>

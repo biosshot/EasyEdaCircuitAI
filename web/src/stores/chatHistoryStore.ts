@@ -77,10 +77,14 @@ export const useChatHistoryStore = defineStore('chatHistory', () => {
             id = emptyChat;
         }
 
+        console.log('Creating new chat session with ID:', id);
+
         const session: ChatSession = {
             id,
             title,
-            messages: initialMessages,
+            messages: [
+                ...initialMessages
+            ],
             createdAt: Date.now(),
             updatedAt: Date.now(),
         };

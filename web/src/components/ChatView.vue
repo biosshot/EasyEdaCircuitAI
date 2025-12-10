@@ -41,9 +41,9 @@
       <div class="input-area">
         <textarea ref="messageTextarea" v-model="newMessage"
           placeholder="Ask about components, specifications, or circuits..." @input="onTextareaInput"
-          @keydown="onTextareaKeydown" :disabled="isLoading"></textarea>
-        <button @click="isLoading ? cancelRequest() : sendMessage()">
-          <Icon :name="isLoading ? 'PauseCircle' : 'Send'" size="20" :class="{ spin: isLoading }" />
+          @keydown="onTextareaKeydown"></textarea>
+        <button @click="isLoading ? cancelRequest() : sendMessage()" :disabled="newMessage.trim() === '' && !isLoading">
+          <Icon :name="isLoading ? 'CircleStop' : 'SendHorizonal'" size="20" :class="{ spin: isLoading }" />
         </button>
       </div>
     </div>
@@ -83,13 +83,12 @@ onMounted(() => {
 });
 
 function adjustTextareaHeight() {
-  const el = messageTextarea.value;
-  if (!el) return;
-  el.style.height = 'auto';
-  const nh = Math.max(el.scrollHeight - el.clientHeight);
-  if (nh < 56) return;
-  // Add small offset to avoid scrollbar in some browsers
-  el.style.height = Math.min(nh, 400) + 'px';
+  const textarea = messageTextarea.value;
+  if (!textarea) return;
+
+  textarea.style.height = 'auto';
+  const newHeight = Math.min(textarea.scrollHeight, 300);
+  textarea.style.height = `${newHeight}px`;
 }
 
 function onTextareaInput() {
@@ -154,8 +153,8 @@ const sendMessage = async () => {
     const body = {
       context: chatMessages.value,
       llmSettings: {
-        provider: settingsStore.getApiProvider,
-        apiKey: settingsStore.getApiKey,
+        provider: settingsStore.getSetting('apiProvider'),
+        apiKey: settingsStore.getSetting('apiKey'),
       }
     };
 
@@ -219,6 +218,7 @@ const sendMessage = async () => {
 
 function cancelRequest() {
   if (!isLoading.value) return;
+  console.log('Cancelling chat request...');
   // abort controller if exists
   try {
     currentController.value?.abort();
@@ -240,8 +240,8 @@ defineExpose({
 <style scoped>
 .chat-view {
   padding: 0;
-  background-color: #111827;
-  color: white;
+  background-color: var(--color-background);
+  color: var(--color-text);
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -267,13 +267,13 @@ defineExpose({
 
 .placeholder-content {
   text-align: center;
-  color: #9ca3af;
+  color: var(--color-text-muted);
   max-width: 420px;
 }
 
 .empty-title {
   font-size: 1.25rem;
-  color: #e6eef6;
+  color: var(--color-text);
   margin-bottom: 0.5rem;
 }
 
@@ -283,7 +283,7 @@ defineExpose({
 
 .empty-hint {
   font-size: 0.9rem;
-  color: #94a3b8;
+  color: var(--color-text-tertiary);
 }
 
 .message {
@@ -299,7 +299,7 @@ defineExpose({
 }
 
 .message.ai .avatar {
-  background-color: #16a34a;
+  background-color: var(--color-primary);
   border-radius: 50%;
   min-width: 32px;
   max-width: 32px;
@@ -307,22 +307,22 @@ defineExpose({
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
+  color: var(--color-text-on-primary);
 }
 
 .message.human .avatar {
-  background-color: #334155;
+  background-color: var(--color-surface-hover);
   border-radius: 50%;
   width: 32px;
   height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
+  color: var(--color-text-on-surface);
 }
 
 .content {
-  background-color: #1e293b;
+  background-color: var(--color-background-secondary);
   padding: 0.75rem 1rem;
   border-radius: 0.5rem;
   max-width: 100%;
@@ -335,7 +335,7 @@ defineExpose({
 
 .timestamp {
   font-size: 0.75rem;
-  color: #64748b;
+  color: var(--color-text-muted);
   text-align: right;
 }
 
@@ -347,21 +347,21 @@ defineExpose({
 .input-area input {
   flex: 1;
   padding: 0.75rem;
-  background-color: #1e293b;
-  border: 1px solid #334155;
+  background-color: var(--color-background-secondary);
+  border: 1px solid var(--color-border);
   border-radius: 0.5rem;
-  color: white;
+  color: var(--color-text);
   font-family: inherit;
 }
 
 .input-area textarea {
   flex: 1;
-  padding: 0.6rem;
-  background-color: #1e293b;
-  border: 1px solid #334155;
-  border-radius: 0.5rem;
-  color: white;
-  font-size: 14px;
+  padding: 0.1rem;
+  background-color: transparent;
+  border: none;
+  /* border-radius: 0.5rem; */
+  color: var(--color-text);
+  font-size: 16px;
   max-height: 240px;
   resize: none;
   overflow: auto;
@@ -371,12 +371,17 @@ defineExpose({
 
 .input-area input:focus {
   outline: none;
+  border-color: var(--color-primary);
+}
+
+.input-area textarea:focus {
+  border-color: var(--color-primary);
 }
 
 .input-area button {
   padding: 0.75rem;
-  background-color: #16a34a;
-  color: white;
+  background-color: var(--color-primary);
+  color: var(--color-text-on-primary);
   border: none;
   border-radius: 0.5rem;
   cursor: pointer;
@@ -384,21 +389,29 @@ defineExpose({
   max-height: 56px;
 }
 
+.input-area button:disabled {
+  background-color: var(--color-surface-hover);
+  color: var(--color-text-on-surface);
+}
+
 .input-area button:hover {
-  background-color: #15803d;
+  background-color: var(--color-primary-dark);
 }
 
 .input-container {
   display: flex;
   flex-direction: column;
-  border-top: 1px solid #334155;
+  border-top: 1px solid var(--color-border);
   gap: 0.5rem;
-  padding: 1rem;
+  padding: 0.5rem;
+  border: 1px solid var(--color-border);
+  margin: 5px;
+  border-radius: 5px;
 }
 
 .error-banner {
-  background: #7f1d1d;
-  color: #ffe6e6;
+  background: var(--color-error);
+  color: var(--color-text-on-primary);
   padding: 0.5rem 0.75rem;
   border-radius: 6px;
   margin: 8px 0;
@@ -414,7 +427,7 @@ button[disabled],
 }
 
 textarea[disabled] {
-  background-color: #111827;
+  background-color: var(--color-background);
   opacity: 0.9;
 }
 
@@ -426,21 +439,21 @@ textarea[disabled] {
 
 .input-option {
   font-size: 10px;
-  background-color: #1e293b;
+  background-color: var(--color-background-secondary);
   padding: 0.5rem 1rem;
-  border-radius: 100px;
+  border-radius: 5px;
   cursor: pointer;
-  border: 1px solid #334155;
+  border: 1px dashed var(--color-border);
   align-items: center;
   display: flex;
-  padding: 0.1rem 1rem 0.1rem 0.5rem;
-  color: white;
+  padding: 0rem 0.5rem 0rem 0rem;
+  color: var(--color-text);
 }
 
 .input-option.active {
-  background-color: #16a34a;
-  color: white;
-  border-color: #16a34a;
+  background-color: var(--color-primary);
+  color: var(--color-text-on-primary);
+  border-color: var(--color-primary);
 }
 
 .markdown-content {
@@ -472,7 +485,7 @@ textarea[disabled] {
   }
 
   pre {
-    background: #f4f4f4;
+    background: var(--color-background-secondary);
     padding: 1em;
     border-radius: 4px;
     overflow-x: auto;
@@ -481,7 +494,7 @@ textarea[disabled] {
   }
 
   code {
-    background: #f4f4f4;
+    background: var(--color-background-secondary);
     padding: 0.2em 0.4em;
     border-radius: 3px;
     font-family: monospace;
@@ -493,10 +506,10 @@ textarea[disabled] {
   }
 
   blockquote {
-    border-left: 4px solid #ccc;
+    border-left: 4px solid var(--color-border);
     padding-left: 1em;
     margin-left: 0;
-    color: #666;
+    color: var(--color-text-muted);
   }
 }
 </style>

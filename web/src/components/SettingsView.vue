@@ -2,53 +2,57 @@
     <div class="settings-view">
         <h1>Settings</h1>
 
-        <div class="settings-section">
-            <h2>LLM API Configuration</h2>
+        <!-- Dynamically generated sections -->
+        <div v-for="section in settingsSections" :key="section.title" class="settings-section">
+            <h2>{{ section.title }}</h2>
+            <p v-if="section.description" class="section-description">{{ section.description }}</p>
 
-            <!-- API Provider -->
-            <div class="setting-group">
-                <label for="provider">API Provider</label>
-                <select id="provider" v-model="settings.apiProvider" @change="onProviderChange">
-                    <option value="openai">openai</option>
-                    <!-- <option value="anthropic">anthropic</option> -->
-                    <!-- <option value="custom">Custom</option> -->
-                </select>
-                <p class="hint">Select your preferred LLM provider</p>
-            </div>
+            <!-- Dynamically generated settings -->
+            <div v-for="setting in section.settings" :key="setting.key" class="setting-group">
+                <label :for="setting.key">{{ setting.label }}</label>
 
-            <!-- API Key -->
-            <div class="setting-group">
-                <label for="apiKey">API Key</label>
-                <input id="apiKey" v-model="settings.apiKey" type="password" placeholder="Enter your API key"
-                    @input="onApiKeyChange" />
-                <p class="hint">Your API key will be saved locally in browser storage</p>
-            </div>
+                <!-- Text Input -->
+                <input v-if="setting.type === 'text' || setting.type === 'password'" :id="setting.key"
+                    :value="settings[setting.key]" :type="setting.type" :placeholder="setting.placeholder"
+                    @input="onSettingChange(setting.key, $event.target.value)" />
 
-            <!-- Buttons -->
-            <div class="button-group">
-                <button class="btn-primary" @click="saveSettings">Save Settings</button>
-                <button class="btn-secondary" @click="resetSettings">Reset to Default</button>
-            </div>
+                <!-- Select Input -->
+                <CustomSelect v-else-if="setting.type === 'select'" :id="setting.key"
+                    :model-value="settings[setting.key]" :options="setting.options"
+                    @update:model-value="onSettingChange(setting.key, $event)" />
 
-            <!-- Status message -->
-            <div v-if="statusMessage" :class="['status-message', statusType]">
-                {{ statusMessage }}
+                <!-- Number Input -->
+                <input v-else-if="setting.type === 'number'" :id="setting.key" type="number"
+                    :value="settings[setting.key]"
+                    @input="onSettingChange(setting.key, parseFloat($event.target.value))" />
+
+                <!-- Checkbox Input -->
+                <input v-else-if="setting.type === 'checkbox'" :id="setting.key" type="checkbox"
+                    :checked="settings[setting.key]" @change="onSettingChange(setting.key, $event.target.checked)" />
+
+                <p v-if="setting.hint" class="hint">{{ setting.hint }}</p>
             </div>
+        </div>
+
+        <!-- Status message -->
+        <div v-if="statusMessage" :class="['status-message', statusType]">
+            {{ statusMessage }}
         </div>
     </div>
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue';
+import { ref, reactive, onMounted, computed } from 'vue';
 import { useSettingsStore } from '../stores/settingsStore';
+import { setTheme } from '../composables/useTheme';
+import Icon from './Icon.vue';
+import CustomSelect from './CustomSelect.vue';
 
 const settingsStore = useSettingsStore();
+const settingsSections = settingsStore.getSettingsSections;
 
-const settings = reactive({
-    apiProvider: '',
-    apiKey: '',
-    apiUrl: '',
-    model: '',
+const settings = computed(() => {
+    return settingsStore.getAllSettings;
 });
 
 const statusMessage = ref('');
@@ -56,81 +60,42 @@ const statusType = ref('');
 
 onMounted(() => {
     settingsStore.initSettings();
-    Object.assign(settings, settingsStore.getLLMSettings);
+    Object.assign(settings, settingsStore.getAllSettings);
 });
 
-const onProviderChange = () => {
-    settingsStore.setApiProvider(settings.apiProvider);
-    Object.assign(settings, settingsStore.getLLMSettings);
-    showStatus('Provider updated', 'success');
-};
-
-const onApiKeyChange = () => {
-    settingsStore.setApiKey(settings.apiKey);
-};
-
-const saveSettings = () => {
-    settingsStore.updateSettings(settings);
-    showStatus('Settings saved successfully!', 'success');
-};
-
-const resetSettings = () => {
-    if (confirm('Are you sure you want to reset all settings to default?')) {
-        settingsStore.resetSettings();
-        Object.assign(settings, settingsStore.getLLMSettings);
-        showStatus('Settings reset to default', 'info');
-    }
-};
-
-const showStatus = (message, type) => {
-    statusMessage.value = message;
-    statusType.value = type;
-    setTimeout(() => {
-        statusMessage.value = '';
-    }, 3000);
+const onSettingChange = (key, value) => {
+    settingsStore.setSetting(key, value);
 };
 </script>
 
 <style scoped>
 .settings-view {
-    /* width: 100%;
-    max-width: 600px; */
-    /* background: #1e293b; */
-    /* border-radius: 12px; */
     padding: 2rem;
-    /* box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3); */
 }
 
 h1 {
     margin: 0 0 2rem 0;
     font-size: 1.8rem;
-    color: #f1f5f9;
+    color: var(--color-text-secondary);
     text-align: center;
 }
 
 h2 {
     margin: 0 0 1.5rem 0;
     font-size: 1.2rem;
-    color: #cbd5e1;
-    border-bottom: 2px solid #334155;
+    color: var(--color-text);
+    border-bottom: 2px solid var(--color-border);
     padding-bottom: 0.75rem;
 }
 
-h3 {
-    margin: 0 0 1rem 0;
-    font-size: 1rem;
-    color: #cbd5e1;
+.section-description {
+    margin: 0 0 1.5rem 0;
+    font-size: 0.9rem;
+    color: var(--color-text-tertiary);
 }
 
 .settings-section {
     margin-bottom: 2rem;
-}
-
-.info-section {
-    background: #0f172a;
-    padding: 1.5rem;
-    border-radius: 8px;
-    border-left: 4px solid #3b82f6;
 }
 
 .setting-group {
@@ -141,38 +106,41 @@ h3 {
     display: block;
     margin-bottom: 0.5rem;
     font-weight: 600;
-    color: #e2e8f0;
+    color: var(--color-text);
     font-size: 0.95rem;
 }
 
-.setting-group input,
-.setting-group select {
+.setting-group input {
     width: 100%;
     padding: 0.75rem;
-    background: #0f172a;
-    border: 1px solid #334155;
+    background: var(--color-background);
+    border: 1px solid var(--color-border);
     border-radius: 6px;
-    color: #f1f5f9;
+    color: var(--color-text);
     font-size: 0.9rem;
     transition: border-color 0.2s;
     box-sizing: border-box;
 }
 
-.setting-group input:focus,
-.setting-group select:focus {
+.setting-group input[type='checkbox'] {
+    width: auto;
+    cursor: pointer;
+}
+
+.setting-group input:focus {
     outline: none;
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(16, 163, 127, 0.1);
 }
 
 .setting-group input::placeholder {
-    color: #64748b;
+    color: var(--color-text-muted);
 }
 
 .hint {
     margin: 0.5rem 0 0 0;
     font-size: 0.8rem;
-    color: #94a3b8;
+    color: var(--color-text-tertiary);
 }
 
 .button-group {
@@ -195,14 +163,14 @@ h3 {
 }
 
 .btn-primary {
-    background: #3b82f6;
-    color: white;
+    background: var(--color-primary);
+    color: var(--color-text-on-primary);
 }
 
 .btn-primary:hover {
-    background: #2563eb;
+    background: var(--color-primary-dark);
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+    box-shadow: 0 4px 12px rgba(16, 163, 127, 0.4);
 }
 
 .btn-primary:active {
@@ -210,12 +178,12 @@ h3 {
 }
 
 .btn-secondary {
-    background: #475569;
-    color: #e2e8f0;
+    background: var(--color-surface-hover);
+    color: var(--color-text);
 }
 
 .btn-secondary:hover {
-    background: #334155;
+    background: var(--color-surface-active);
 }
 
 .status-message {
@@ -228,18 +196,18 @@ h3 {
 }
 
 .status-message.success {
-    background: #10b981;
-    color: white;
+    background: var(--color-success);
+    color: var(--color-text-on-primary);
 }
 
 .status-message.info {
-    background: #3b82f6;
-    color: white;
+    background: var(--color-secondary);
+    color: var(--color-text-on-primary);
 }
 
 .status-message.error {
-    background: #ef4444;
-    color: white;
+    background: var(--color-error);
+    color: var(--color-text-on-primary);
 }
 
 @keyframes slideIn {
@@ -252,35 +220,5 @@ h3 {
         opacity: 1;
         transform: translateY(0);
     }
-}
-
-.config-display {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-}
-
-.config-item {
-    display: flex;
-    justify-content: space-between;
-    padding: 0.75rem;
-    background: #1e293b;
-    border-radius: 6px;
-    border-left: 3px solid #64748b;
-}
-
-.config-item .label {
-    font-weight: 600;
-    color: #cbd5e1;
-}
-
-.config-item .value {
-    color: #94a3b8;
-    font-family: 'Courier New', monospace;
-    word-break: break-all;
-}
-
-.config-item .value.has-key {
-    color: #10b981;
 }
 </style>

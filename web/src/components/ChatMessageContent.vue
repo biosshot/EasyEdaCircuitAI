@@ -7,6 +7,8 @@
             <ComponentViewer v-if="parsedMessage?.type === 'component_search_result'" :result="parsedMessage.result" />
             <CircuitExplainViewer v-else-if="parsedMessage?.type === 'circuit_explain_result'"
                 :result="parsedMessage.result" />
+            <CircuitAgentResultViewer v-else-if="parsedMessage?.type === 'circuit_agent_result'"
+                :result="parsedMessage.result" />
             <PdfFileViewer v-else-if="parsedMessage?.type === 'pdf-file'" :result="parsedMessage.result" />
             <div v-else v-html="fallbackHtml"></div>
         </template>
@@ -19,6 +21,7 @@ import DOMPurify from 'dompurify'
 import { marked } from '../utils.ts'
 import ComponentViewer from './ComponentViewer.vue'
 import CircuitExplainViewer from './CircuitExplainViewer.vue'
+import CircuitAgentResultViewer from './CircuitAgentResultViewer.vue'
 import PdfFileViewer from './PdfFileViewer.vue'
 
 const props = defineProps({
@@ -65,7 +68,7 @@ const fallbackHtml = computed(() => {
 .mes-content {
     line-height: 1.6;
     font-size: 1rem;
-    /* color: #e5e7eb; */
+    /* color: var(--color-text-secondary); */
     /* светлый текст на тёмном фоне */
     word-wrap: break-word;
     overflow-wrap: break-word;
@@ -84,7 +87,7 @@ const fallbackHtml = computed(() => {
         margin-top: 1.5em;
         margin-bottom: 0.5em;
         font-weight: bold;
-        color: #f9fafb;
+        color: var(--color-text-secondary);
     }
 
     p {
@@ -102,8 +105,8 @@ const fallbackHtml = computed(() => {
     }
 
     pre {
-        background: #1e293b;
-        border: 1px solid #334155;
+        background: var(--color-background-secondary);
+        border: 1px solid var(--color-border);
         padding: 1em;
         border-radius: 0.5rem;
         overflow-x: auto;
@@ -114,12 +117,12 @@ const fallbackHtml = computed(() => {
     }
 
     code {
-        background: #334155;
+        background: var(--color-surface-hover);
         padding: 0.2em 0.4em;
         border-radius: 3px;
         font-family: 'Fira Code', monospace;
         font-size: 0.9rem;
-        color: #bbf7d0;
+        color: #79c0ff;
     }
 
     img {
@@ -130,25 +133,25 @@ const fallbackHtml = computed(() => {
     }
 
     blockquote {
-        border-left: 4px solid #3b82f6;
+        border-left: 4px solid var(--color-primary);
         padding-left: 1em;
         margin: 0.5em 0;
-        color: #94a3b8;
+        color: var(--color-text-tertiary);
         font-style: italic;
     }
 
     a {
-        color: #3b82f6;
+        color: var(--color-primary);
         text-decoration: underline;
     }
 
     .code-header {
-        background: #334155;
+        background: #30363d;
         padding: 0.5em 1em;
         border-top-left-radius: 0.5rem;
         border-top-right-radius: 0.5rem;
         font-size: 0.8rem;
-        color: #94a3b8;
+        color: #a1a7b8;
         display: flex;
         align-items: center;
         gap: 0.5em;
