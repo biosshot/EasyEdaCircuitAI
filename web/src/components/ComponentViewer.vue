@@ -46,16 +46,16 @@ console.log(props.result)
 <style scoped>
 .component-viewer {
     padding: 16px;
-    background-color: #121826;
+    background-color: var(--color-surface);
     border-radius: 8px;
-    border: 1px solid #2a3447;
-    color: #e0e0e0;
+    border: 1px solid var(--color-border);
+    color: var(--color-text);
 }
 
 .empty-message {
     text-align: center;
     padding: 20px;
-    color: #999;
+    color: var(--color-text-muted);
     font-style: italic;
     font-size: 0.95em;
 }
@@ -70,16 +70,16 @@ console.log(props.result)
     margin-top: 0;
     margin-bottom: 12px;
     padding-bottom: 6px;
-    border-bottom: 1px solid #2a3447;
-    color: #ffffff;
+    border-bottom: 1px solid var(--color-border);
+    color: var(--color-text);
 }
 
 .best-component h3 {
-    color: #4caf50;
+    color: var(--color-success);
 }
 
 .other-components h3 {
-    color: #64b5f6;
+    color: var(--color-secondary);
 }
 
 .components-grid {

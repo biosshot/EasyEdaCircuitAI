@@ -28,7 +28,7 @@ export async function about() {
 }
 
 export async function openInterface() {
-	eda.sys_IFrame.openIFrame('/iframe/index.html', 600, 700);
+	eda.sys_IFrame.openIFrame('/iframe/index.html', 520, 700);
 }
 
 export async function importCircuit() {

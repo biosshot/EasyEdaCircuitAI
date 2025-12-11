@@ -23,7 +23,7 @@
 
 <script setup>
 import { fetchEda } from '../fetchWithTask.ts'
-import { computed, ref, watch, onBeforeUnmount } from 'vue'
+import { computed, ref, watch, onBeforeUnmount, onMounted } from 'vue'
 
 const props = defineProps({
     result: {
@@ -104,7 +104,10 @@ async function loadWithNoCors() {
     return finalSrc.value;
 }
 
-loadWithNoCors();
+// Следим за изменением URL и перезагружаем PDF
+watch(url, () => {
+    loadWithNoCors()
+}, { immediate: true })
 
 onBeforeUnmount(() => {
     if (finalSrc.value) {

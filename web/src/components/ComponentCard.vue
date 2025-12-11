@@ -54,22 +54,22 @@ const placeComponent = async () => {
 
 <style scoped>
 .component-card {
-  background-color: #161b22;
-  border: 1px solid #30363d;
+  background-color: var(--color-background-secondary);
+  border: 1px solid var(--color-border);
   border-radius: 8px;
   padding: 16px;
-  color: #ececf1;
+  color: var(--color-text);
   transition: border-color 0.2s ease;
 }
 
 .component-card:hover {
-  border-color: #10a37f;
+  border-color: var(--color-primary);
 }
 
 .component-card h4 {
   margin-top: 0;
   margin-bottom: 8px;
-  color: #ececf1;
+  color: var(--color-text);
   font-weight: 600;
 }
 
@@ -83,7 +83,7 @@ const placeComponent = async () => {
 }
 
 .datasheet-link a {
-  color: #10a37f;
+  color: var(--color-primary);
   text-decoration: none;
   font-weight: 500;
 }
@@ -96,22 +96,22 @@ const placeComponent = async () => {
   cursor: pointer;
   margin-top: 12px;
   padding: 8px;
-  background-color: #30363d;
+  background-color: var(--color-surface-hover);
   border-radius: 4px;
-  color: #ececf1;
+  color: var(--color-text);
   font-weight: 500;
   transition: background-color 0.2s;
 }
 
 .pins-details summary:hover {
-  background-color: #40454f;
+  background-color: var(--color-surface-active);
 }
 
 .pins-list {
   list-style: none;
   padding-left: 0;
   margin-top: 8px;
-  background-color: #161b22;
+  background-color: var(--color-background-secondary);
   border-radius: 4px;
   padding: 8px;
 }
@@ -119,28 +119,28 @@ const placeComponent = async () => {
 .pin-item {
   margin-bottom: 8px;
   padding: 8px;
-  border-left: 3px solid #10a37f;
-  background-color: #30363d;
+  border-left: 3px solid var(--color-primary);
+  background-color: var(--color-surface-hover);
   border-radius: 4px;
 }
 
 .pin-item strong {
-  color: #ececf1;
+  color: var(--color-text);
 }
 
 .pin-item em {
   display: block;
   margin-top: 4px;
   font-size: 0.9em;
-  color: #a1a7b8;
+  color: var(--color-text-tertiary);
 }
 
 .place-button {
   margin-top: 12px;
   width: 100%;
   padding: 10px;
-  background-color: #4caf50;
-  color: #ffffff;
+  background-color: var(--color-success);
+  color: var(--color-text-on-primary);
   border: none;
   border-radius: 4px;
   font-weight: 600;
@@ -149,10 +149,10 @@ const placeComponent = async () => {
 }
 
 .place-button:hover {
-  background-color: #45a049;
+  background-color: var(--color-primary-light);
 }
 
 .place-button:active {
-  background-color: #3d8b40;
+  background-color: var(--color-primary-dark);
 }
 </style>

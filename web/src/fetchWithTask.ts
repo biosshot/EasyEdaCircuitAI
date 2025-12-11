@@ -40,7 +40,7 @@ export async function fetchWithTask({
     pollIntervalMs = 1000,
     timeoutMs = Infinity,
     onProgress = undefined,
-}: { url: string, body: string, fetchOptions: any, pollIntervalMs: number, timeoutMs: number, onProgress: ((s: string) => any) | undefined }) {
+}: { url: string, body: string, fetchOptions: RequestInit, pollIntervalMs: number, timeoutMs: number, onProgress: ((s: string) => any) | undefined }) {
     const startRes = await fetchEda(url + '/start', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...fetchOptions.headers },
@@ -57,55 +57,80 @@ export async function fetchWithTask({
     if (!operationId) throw new Error('Missing operationId');
 
     const statusUrl = `${url}/status/${encodeURIComponent(operationId)}`;
+    const cancelUrl = `${url}/cancel/${encodeURIComponent(operationId)}`;
     const startTime = Date.now();
     onProgress?.('pending');
 
     // support cancellation via AbortSignal passed in fetchOptions.signal
-    const signal: AbortSignal | undefined = fetchOptions?.signal;
+    const signal: AbortSignal | null | undefined = fetchOptions?.signal;
 
-    while (true) {
-        if (signal?.aborted) {
-            throw new Error('Operation aborted');
-        }
-
-        if (Date.now() - startTime > timeoutMs) {
-            throw new Error(`Operation timed out after ${timeoutMs} ms`);
-        }
-
-        const statusRes = await fetchEda(statusUrl, fetchOptions);
-        if (!statusRes.ok) {
-            if (statusRes.status === 404) {
-                // wait but allow abort
-                await new Promise((res, rej) => {
-                    const t = setTimeout(() => res(undefined), pollIntervalMs);
-                    if (signal) {
-                        signal.addEventListener('abort', () => {
-                            clearTimeout(t);
-                            rej(new Error('Operation aborted'));
-                        }, { once: true });
-                    }
-                });
-                continue;
+    // Handle abort signal by sending cancel request to server
+    let abortHandler: (() => Promise<void>) | undefined;
+    if (signal) {
+        abortHandler = async () => {
+            try {
+                await fetchEda(cancelUrl, { method: 'DELETE' });
+            } catch (err) {
+                console.error('Failed to cancel operation:', err);
             }
-            const text = await statusRes.text();
-            throw new Error(`Status check failed: ${statusRes.status} ${text}`);
-        }
-
-        const op = await statusRes.json();
-        onProgress?.(op.status);
-
-        if (signal?.aborted) {
+        };
+        if (signal.aborted) {
+            await abortHandler();
             throw new Error('Operation aborted');
         }
+        signal.addEventListener('abort', abortHandler, { once: true });
+    }
 
-        if (op.status === 'completed') {
-            if (op.result === undefined) throw new Error('Result missing');
-            return op.result;
-        }
-        if (op.status === 'failed') {
-            throw new Error(op.error || 'Operation failed');
-        }
+    try {
+        while (true) {
+            if (signal?.aborted) {
+                throw new Error('Operation aborted');
+            }
 
-        await new Promise(res => setTimeout(res, pollIntervalMs));
+            if (Date.now() - startTime > timeoutMs) {
+                throw new Error(`Operation timed out after ${timeoutMs} ms`);
+            }
+
+            const statusRes = await fetchEda(statusUrl, fetchOptions);
+            if (!statusRes.ok) {
+                if (statusRes.status === 404) {
+                    // wait but allow abort
+                    await new Promise((res, rej) => {
+                        const t = setTimeout(() => res(undefined), pollIntervalMs);
+                        if (signal) {
+                            signal.addEventListener('abort', () => {
+                                clearTimeout(t);
+                                rej(new Error('Operation aborted'));
+                            }, { once: true });
+                        }
+                    });
+                    continue;
+                }
+                const text = await statusRes.text();
+                throw new Error(`Status check failed: ${statusRes.status} ${text}`);
+            }
+
+            const op = await statusRes.json();
+            onProgress?.(op.status);
+
+            if (signal?.aborted) {
+                throw new Error('Operation aborted');
+            }
+
+            if (op.status === 'completed') {
+                if (op.result === undefined) throw new Error('Result missing');
+                return op.result;
+            }
+            if (op.status === 'failed') {
+                throw new Error(op.error || 'Operation failed');
+            }
+
+            await new Promise(res => setTimeout(res, pollIntervalMs));
+        }
+    } finally {
+        // Clean up abort listener
+        if (signal && abortHandler) {
+            signal.removeEventListener('abort', abortHandler);
+        }
     }
 }

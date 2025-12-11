@@ -9,10 +9,10 @@
                             Assebmle circuit
                         </button>
 
-                        <div style="max-width: 90%; word-wrap: break-word;">
-                            <h2 class="project-name">{{ result?.circuit?.metadata?.project_name || 'Untitled Project' }}
-                            </h2>
-                            <p class="project-description">{{ result?.circuit?.metadata?.description }}</p>
+                        <div style="word-wrap: break-word;">
+                            <h3 class="project-name">{{ result?.circuit?.metadata?.project_name || 'Untitled Project' }}
+                            </h3>
+                            <pre class="project-description">{{ result?.circuit?.metadata?.description }}</pre>
                         </div>
 
                     </div>
@@ -26,7 +26,7 @@
                             <div class="block-header">
                                 <span class="block-name">{{ block.name }}</span>
                             </div>
-                            <p class="block-description">{{ block.description }}</p>
+                            <pre class="block-description">{{ block.description }}</pre>
                             <div v-if="block.nextBlocks?.length" class="next-blocks">
                                 <span class="label">Related blocks:</span>
                                 <div class="tags">
@@ -165,8 +165,9 @@ const assembleCircuitHandler = async () => {
 
 .project-name {
     margin: 0 0 0.5rem 0;
-    font-size: 1.5rem;
+    /* font-size: 1.5rem; */
     color: var(--color-text-primary);
+    /* max-width: 90%; */
 }
 
 .project-description {

@@ -158,7 +158,7 @@ const sendMessage = async () => {
       }
     };
 
-    console.log(body)
+    // console.log(body)
 
     if (!body.llmSettings.apiKey) {
       throw new Error('API Key is not set. Please set it in Settings.');
