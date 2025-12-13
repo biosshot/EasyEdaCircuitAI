@@ -75,7 +75,7 @@ export async function fetchWithTask({
     if (signal) {
         abortHandler = async () => {
             try {
-                await fetchEda(cancelUrl, { method: 'DELETE' });
+                await fetchEda(cancelUrl, { method: 'DELETE', headers: { 'Authorization': authorization } });
             } catch (err) {
                 console.error('Failed to cancel operation:', err);
             }
@@ -97,7 +97,7 @@ export async function fetchWithTask({
                 throw new Error(`Operation timed out after ${timeoutMs} ms`);
             }
 
-            const statusRes = await fetchEda(statusUrl, fetchOptions);
+            const statusRes = await fetchEda(statusUrl, { ...fetchOptions, headers: { 'Authorization': authorization, ...fetchOptions.headers } });
             if (!statusRes.ok) {
                 if (statusRes.status === 404) {
                     // wait but allow abort
