@@ -38,7 +38,7 @@ export async function fetchWithTask({
     url,
     body,
     fetchOptions = {},
-    pollIntervalMs = 1000,
+    pollIntervalMs = 5000,
     timeoutMs = Infinity,
     onProgress = undefined,
 }: { url: string, body: string, fetchOptions: RequestInit, pollIntervalMs: number, timeoutMs: number, onProgress: ((s: string) => any) | undefined }) {
