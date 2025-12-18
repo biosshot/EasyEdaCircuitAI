@@ -1,6 +1,6 @@
 import type { CircuitWithPos } from "./types/circuit";
 
-const to2 = (x: number) => x - (x % 5);
+const to2 = (x: number) => { x = Math.round(x); return x - (x % 5); }
 
 function chunkArray(arr: any[], size: number) {
     const chunkedArr = [];
@@ -10,15 +10,15 @@ function chunkArray(arr: any[], size: number) {
     return chunkedArr;
 }
 
-async function createComponet(component: CircuitWithPos['components'][0], height = 800) {
+async function createComponet(component: CircuitWithPos['components'][0], offset = { x: 0, y: 0 }) {
     let comp: ISCH_PrimitiveComponent | ISCH_PrimitiveComponent_2 | undefined;
     const { partUuid, designator, pos } = component;
     if (!partUuid) throw new Error("createComponet partUuid not found");
 
     const create = async (data: { libraryUuid: string, uuid: string }) => {
         const comp = await eda.sch_PrimitiveComponent.create(data,
-            to2(pos.x + pos.width / 2),
-            to2(height - (pos.y + pos.height / 2)),
+            to2(offset.x + pos.x + (pos.center?.x ?? (pos.width / 2))),
+            to2(offset.y - (pos.y + (pos.center?.y ?? (pos.height / 2)))),
             undefined, pos.rotate
         );
 
@@ -60,13 +60,13 @@ async function createComponet(component: CircuitWithPos['components'][0], height
     return comp;
 }
 
-async function placeComponents(components: CircuitWithPos['components'], height = 800) {
+async function placeComponents(components: CircuitWithPos['components'], offset = { x: 0, y: 0 }) {
     const placedComponentsP = components.map(async (component) => {
         const { partUuid, designator } = component;
         if (!partUuid) return;
 
         try {
-            const placedComponent: ISCH_PrimitiveComponent | ISCH_PrimitiveComponent_2 = await createComponet(component, height);
+            const placedComponent: ISCH_PrimitiveComponent | ISCH_PrimitiveComponent_2 = await createComponet(component, offset);
 
             const primitive_id = placedComponent.getState_PrimitiveId();
 
@@ -83,7 +83,7 @@ async function placeComponents(components: CircuitWithPos['components'], height 
 
             return { primitive_id, pins: sortedPins, designator };
         } catch (err) {
-            eda.sys_MessageBox.showInformationMessage(`Component error ${designator}: ${(err as any).message}`);
+            eda.sys_Message.showToastMessage(`Component error ${designator}: ${(err as any).message}`, ESYS_ToastMessageType.ERROR);
             return null;
         }
     });
@@ -94,8 +94,8 @@ async function placeComponents(components: CircuitWithPos['components'], height 
     return Object.fromEntries(placedComponents.filter(Boolean).map((component) => [component.designator, component]));
 }
 
-async function drawEdges(edges: CircuitWithPos['edges'], components: CircuitWithPos['components'], placeComponents: any, height = 800) {
-    const pointToArr = (p: any) => [p.x, -(height - p.y)];
+async function drawEdges(edges: CircuitWithPos['edges'], components: CircuitWithPos['components'], placeComponents: any, offset = { x: 0, y: 0 }) {
+    const pointToArr = (p: any) => [offset.x + p.x, -(offset.y - p.y)];
 
     const findPin = (designator: string, pin: any) => {
         pin = Number(pin);
@@ -117,9 +117,9 @@ async function drawEdges(edges: CircuitWithPos['edges'], components: CircuitWith
             const trgpin = findPin(tdesignator, tpin);
             if (!srcpin || !trgpin) {
                 if (!srcpin)
-                    eda.sys_MessageBox.showInformationMessage(`Wire error not found pin: ${sdesignator} ${spin}`);
+                    eda.sys_Message.showToastMessage(`Wire error not found pin: ${sdesignator} ${spin}`, ESYS_ToastMessageType.ERROR);
                 if (!trgpin)
-                    eda.sys_MessageBox.showInformationMessage(`Wire error not found pin: ${tdesignator} ${tpin}`);
+                    eda.sys_Message.showToastMessage(`Wire error not found pin: ${tdesignator} ${tpin}`, ESYS_ToastMessageType.ERROR);
 
                 continue;
             }
@@ -134,13 +134,15 @@ async function drawEdges(edges: CircuitWithPos['edges'], components: CircuitWith
             if ("bendPoints" in section) {
                 for (const bend of section.bendPoints) {
                     const [x, y] = pointToArr(bend);
+                    // values.push(x, y);
+
                     const merge = (a: number, b: number) => Math.abs(a - b) <= 5 ? b : a;
                     values.push(merge(merge(x, srcpx), trgpx), merge(merge(y, srcpy), trgpy));
                 }
             }
 
             values.push(trgpx, trgpy);
-            values = values.map(x => to2(Math.round(x)));
+            values = values.map(x => to2(x));
 
             for (let i = 0; i < values.length; i += 2) {
                 if (values.length <= i + 3) continue;
@@ -158,27 +160,47 @@ async function drawEdges(edges: CircuitWithPos['edges'], components: CircuitWith
             try {
                 await eda.sch_PrimitiveWire.create(values, netName);
             } catch (err) {
-                eda.sys_MessageBox.showInformationMessage(`Wire error: ${(err as any).message} ${JSON.stringify(values)} ${netName}`);
+                eda.sys_Message.showToastMessage(`Wire error: ${(err as any).message} ${JSON.stringify(values)} ${netName} ${section.incomingShape} -> ${section.outgoingShape}`, ESYS_ToastMessageType.ERROR);
             }
         }
     }
 
 }
 
+const getPageSize = async () => {
+    try {
+        const page = await eda.dmt_Schematic.getCurrentSchematicPageInfo();
+        if (!page) return { width: 1200, height: 800 };
+        const width = Object.entries(page.titleBlockData).find(([key]) => key.toLowerCase() === 'width');
+        const height = Object.entries(page.titleBlockData).find(([key]) => key.toLowerCase() === 'height');
+        return { width: Number(width?.[1]?.value ?? 1200), height: Number(height?.[1]?.value ?? 800) };
+    } catch (error) {
+        return { width: 1200, height: 800 };
+    }
+}
+
 export async function assembleCircuit(circuit: CircuitWithPos) {
-    eda.sys_MessageBox.showInformationMessage(`Assemble circuit...`);
+    eda.sys_Message.showToastMessage(`Assemble circuit...`, ESYS_ToastMessageType.INFO);
+    const pageSize = await getPageSize();
+    const root = (circuit.blocksRect ?? []).find(block => block.name === 'block___v_root__');
 
-    const height = 800;
+    const offset = { x: 0, y: 0 };
 
-    const placedComp = await placeComponents(circuit.components, height);
+    if (root) {
+        offset.x = (pageSize.width - root.width) / 2;
+        offset.y = ((pageSize.height - root.height) / 2) + root.height;
+    }
 
-    await drawEdges(circuit.edges, circuit.components, placedComp, height);
+    const placedComp = await placeComponents(circuit.components, offset);
+
+    await drawEdges(circuit.edges, circuit.components, placedComp, offset);
 
     for (const block of circuit.blocksRect ?? []) {
         if (block.name === 'block___v_root__') continue;
-        const padding = 10;
-        const y = height - (block.y - padding);
-        const x = block.x - padding;
+        const padding = 5;
+
+        const y = offset.y - (block.y - padding);
+        const x = offset.x + block.x - padding;
 
         await eda.sch_PrimitiveRectangle.create(x, y, block.width + (padding * 2), block.height + (padding * 2), 2);
 
@@ -191,5 +213,5 @@ export async function assembleCircuit(circuit: CircuitWithPos) {
 
     }
 
-    eda.sys_MessageBox.showInformationMessage(`Assemble complete.`);
+    eda.sys_Message.showToastMessage(`Assemble complete.`, ESYS_ToastMessageType.SUCCESS);
 }

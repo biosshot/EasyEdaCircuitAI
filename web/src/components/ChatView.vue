@@ -23,11 +23,6 @@
       </div>
     </div>
 
-    <!-- Error banner shown when request failed -->
-    <div class="error-banner" v-if="errorMessage">
-      <p>{{ errorMessage }}</p>
-    </div>
-
     <div class="input-container">
       <div class="input-options">
         <button class="input-option" v-for="opt in options" :key="opt.value"
@@ -58,7 +53,7 @@ import Icon from './Icon.vue';
 import { apiUrl, authorization, fetchWithTask } from '../fetchWithTask';
 import ChatMessageContent from './ChatMessageContent.vue';
 import { getSchematic } from '../eda/getSchematic';
-import { isEasyEda } from '../utils';
+import { isEasyEda, showToastMessage } from '../utils';
 import { useSettingsStore } from '../stores/settingsStore';
 
 const store = useAppStore();
@@ -73,7 +68,6 @@ const messageTextarea = ref(null);
 
 // Loading and error states for requests
 const isLoading = ref(false);
-const errorMessage = ref('');
 
 // Controller for cancellation of in-flight chat request
 const currentController = ref(null);
@@ -116,7 +110,6 @@ const sendMessage = async () => {
 
   try {
     isLoading.value = true;
-    errorMessage.value = '';
 
     // create abort controller for this request and store it so it can be cancelled
     const controller = new AbortController();
@@ -130,6 +123,7 @@ const sendMessage = async () => {
         const primitiveIds = await eda.sch_SelectControl.getAllSelectedPrimitives_PrimitiveId();
         if (primitiveIds.length) {
           userOptions[opt.id] = await getSchematic(primitiveIds);
+          console.log('[ChatView] get sel schematic:', primitiveIds, userOptions[opt.id]);
         }
       } else {
         userOptions[opt.id] = opt.value;
@@ -198,11 +192,8 @@ const sendMessage = async () => {
 
       const err = 'Failed to get response from chat API.';
       console.error(err, response);
-      errorMessage.value = err;
-      // also show an ai message so the user sees it in chat history
-      const errorMsg = { role: 'ai', content: err };
-      // store.addChatMessage(errorMsg);
-      historyStore.addMessageToCurrentChat(errorMsg);
+
+      showToastMessage(err, 'error');
       return;
     }
 
@@ -214,10 +205,7 @@ const sendMessage = async () => {
     const isAbort = e?.message === 'Operation aborted' || e?.name === 'AbortError' || /aborted/i.test(e?.message || '');
     const errMsg = isAbort ? 'Request cancelled by user.' : (e?.message ? `Request failed: ${e.message}` : 'Request failed');
     console.error('[ChatView] Chat request error:', e);
-    errorMessage.value = isAbort ? '' : errMsg;
-    const aiMsg = { role: 'ai', content: errMsg };
-    // store.addChatMessage(aiMsg);
-    historyStore.addMessageToCurrentChat(aiMsg);
+    showToastMessage(isAbort ? e.message : errMsg, 'error');
   } finally {
     isLoading.value = false;
     // clear controller
@@ -236,7 +224,7 @@ function cancelRequest() {
   }
   // set UI state immediately
   isLoading.value = false;
-  errorMessage.value = 'Request cancelled by user.';
+  showToastMessage('Request cancelled by user.', 'info');
   currentController.value = null;
 }
 
@@ -334,7 +322,7 @@ defineExpose({
   background-color: var(--color-background-secondary);
   padding: 0.75rem 1rem;
   border-radius: 0.5rem;
-  max-width: 100%;
+  max-width: 85%;
 }
 
 .text {

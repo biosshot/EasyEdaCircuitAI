@@ -83,8 +83,12 @@ export async function getSchematic(primitiveIds?: string[]) {
         }
 
         for (const id of primitiveIds) {
-            let prim: any = (await eda.sch_Primitive.getPrimitiveByPrimitiveId(id) as any)?.[0];
-            if (!prim || prim.getState_PrimitiveType() !== ESCH_PrimitiveType.COMPONENT) continue;
+            let prim: any = await eda.sch_Primitive.getPrimitiveByPrimitiveId(id);
+
+            if (!prim || prim.getState_PrimitiveType() !== ESCH_PrimitiveType.COMPONENT) {
+                console.error(`[getSchematic] Error Processing component`, prim);
+                continue;
+            }
 
             const designator = (prim as any).designator || '';
 
@@ -137,11 +141,11 @@ export async function getSchematic(primitiveIds?: string[]) {
                 designator,
                 value,
                 pins,
-                partUuid: prim.component.uuid,
+                partUuid: await eda.lib_Device.search(prim.supplierId).then(devices => devices?.[0].uuid).catch(_ => null) ?? null,
             });
         }
 
-        return ExplainCircuitStruct().parse({ components });
+        return { components };
     } catch (error) {
         console.error('[extractSchematicData] Error:', error);
         throw error;

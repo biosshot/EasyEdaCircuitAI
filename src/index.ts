@@ -268,7 +268,7 @@ export async function exportBomGOST() {
 		const [_, type] = getElementLabel(line.startDesignator);
 
 		if (!type) {
-			eda.sys_Dialog.showInformationMessage("Not found label for line: " + JSON.stringify(line, null, 2));
+			eda.sys_Message.showToastMessage("Not found label for line: " + JSON.stringify(line, null, 2), "error")
 			continue;
 		}
 
@@ -307,16 +307,16 @@ export async function exportBomGOST() {
 	}
 
 	const firstPageBytes = await fetchResource('/templates/gost/gostLE_fp.pdf');
-	if (!firstPageBytes) return eda.sys_Dialog.showInformationMessage('Cannot load first page template PDF file');
+	if (!firstPageBytes) return eda.sys_Message.showToastMessage('Cannot load first page template PDF file', 'error');
 
 	const nextPageBytes = await fetchResource('/templates/gost/gostLE_np.pdf');
-	if (!nextPageBytes) return eda.sys_Dialog.showInformationMessage('Cannot load next page template PDF file');
+	if (!nextPageBytes) return eda.sys_Message.showToastMessage('Cannot load next page template PDF file', 'error');
 
 	const pdfDoc = await PDFDocument.load(firstPageBytes);
 	const pdfNpDoc = await PDFDocument.load(nextPageBytes);
 
 	const fontBytes = await fetchResource('/templates/gost/GOST_B.TTF')
-	if (!fontBytes) return eda.sys_Dialog.showInformationMessage('Cannot load font file');
+	if (!fontBytes) return eda.sys_Message.showToastMessage('Cannot load font file', 'error');
 
 	pdfDoc.registerFontkit(fontkit as any);
 	const customFont = await pdfDoc.embedFont(fontBytes);

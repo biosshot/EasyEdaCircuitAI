@@ -22,7 +22,6 @@ import { computed, ref, onMounted, watchEffect } from 'vue';
 import { useAppStore } from './stores/appStore.ts';
 import { setTheme } from './composables/useTheme.ts';
 import Navbar from './components/Navbar.vue';
-import GenerateView from './components/GenerateView.vue';
 import ChatView from './components/ChatView.vue';
 import ChatControls from './components/ChatControls.vue';
 import SettingsView from './components/SettingsView.vue';

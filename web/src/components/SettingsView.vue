@@ -33,11 +33,6 @@
                 <p v-if="setting.hint" class="hint">{{ setting.hint }}</p>
             </div>
         </div>
-
-        <!-- Status message -->
-        <div v-if="statusMessage" :class="['status-message', statusType]">
-            {{ statusMessage }}
-        </div>
     </div>
 </template>
 
@@ -47,6 +42,7 @@ import { useSettingsStore } from '../stores/settingsStore';
 import { setTheme } from '../composables/useTheme';
 import Icon from './Icon.vue';
 import CustomSelect from './CustomSelect.vue';
+import { showToastMessage } from '../utils';
 
 const settingsStore = useSettingsStore();
 const settingsSections = settingsStore.getSettingsSections;
@@ -55,9 +51,6 @@ const settings = computed(() => {
     return settingsStore.getAllSettings;
 });
 
-const statusMessage = ref('');
-const statusType = ref('');
-
 onMounted(() => {
     settingsStore.initSettings();
     Object.assign(settings, settingsStore.getAllSettings);
@@ -65,6 +58,7 @@ onMounted(() => {
 
 const onSettingChange = (key, value) => {
     settingsStore.setSetting(key, value);
+    showToastMessage('Settings saved', 'success');
 };
 </script>
 
@@ -184,30 +178,6 @@ h2 {
 
 .btn-secondary:hover {
     background: var(--color-surface-active);
-}
-
-.status-message {
-    padding: 1rem;
-    border-radius: 6px;
-    text-align: center;
-    font-weight: 600;
-    margin-bottom: 1rem;
-    animation: slideIn 0.3s ease-out;
-}
-
-.status-message.success {
-    background: var(--color-success);
-    color: var(--color-text-on-primary);
-}
-
-.status-message.info {
-    background: var(--color-secondary);
-    color: var(--color-text-on-primary);
-}
-
-.status-message.error {
-    background: var(--color-error);
-    color: var(--color-text-on-primary);
 }
 
 @keyframes slideIn {
