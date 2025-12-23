@@ -1,15 +1,25 @@
 <template>
   <div class="chat-view">
-    <div class="messages" v-if="chatMessages?.length">
+    <div class="messages" v-if="chatMessages?.length" ref="messagesContainer" @scroll="onScroll">
       <div v-for="msg in chatMessages" :class="['message', msg.role]">
         <div v-if="msg.role === 'ai'" class="avatar">
           <Icon name="Cpu" size="20" />
         </div>
-        <div class="content">
-          <ChatMessageContent :message="msg" />
-        </div>
+        <ChatMessageContent :message="msg" />
         <div v-if="msg.role === 'human'" class="avatar">
           <Icon name="User" size="20" />
+        </div>
+      </div>
+      <div v-if="isLoading" class="message ai typing-indicator">
+        <div class="avatar">
+          <Icon name="Cpu" size="20" />
+        </div>
+        <div class="typing-bubble">
+          <div class="typing-dots">
+            <span class="dot"></span>
+            <span class="dot"></span>
+            <span class="dot"></span>
+          </div>
         </div>
       </div>
     </div>
@@ -23,30 +33,40 @@
       </div>
     </div>
 
-    <div class="input-container">
-      <div class="input-options">
-        <button class="input-option" v-for="opt in options" :key="opt.value"
-          :class="['option-btn', { active: opt.value }]" @click="opt.value = !opt.value" :disabled="isLoading">
-          <Icon :name="opt.icon" size="10" />
-          <label>{{ opt.label }}</label>
-        </button>
+    <div class="input">
 
-      </div>
+      <button class="scroll-to-bottom-btn" v-show="showScrollButton" @click="scrollToBottom">
+        <Icon name="ChevronDown" size="20" />
+      </button>
 
-      <div class="input-area">
-        <textarea ref="messageTextarea" v-model="newMessage"
-          placeholder="Ask about components, specifications, or circuits..." @input="onTextareaInput"
-          @keydown="onTextareaKeydown"></textarea>
-        <button @click="isLoading ? cancelRequest() : sendMessage()" :disabled="newMessage.trim() === '' && !isLoading">
-          <Icon :name="isLoading ? 'CircleStop' : 'SendHorizonal'" size="20" :class="{ spin: isLoading }" />
-        </button>
+      <div class="input-container">
+        <div class="input-options">
+          <button class="input-option" v-for="opt in options" :key="opt.value"
+            :class="['option-btn', { active: opt.value }]" @click="opt.value = !opt.value" :disabled="isLoading">
+            <Icon :name="opt.icon" size="10" />
+            <label>{{ opt.label }}</label>
+          </button>
+
+        </div>
+
+        <div class="input-area">
+          <textarea ref="messageTextarea" v-model="newMessage"
+            placeholder="Ask about components, specifications, or circuits..." @input="onTextareaInput"
+            @keydown="onTextareaKeydown"></textarea>
+          <button @click="isLoading ? cancelRequest() : sendMessage()"
+            :disabled="newMessage.trim() === '' && !isLoading">
+            <Icon :name="isLoading ? 'CircleStop' : 'SendHorizonal'" size="20" :class="{ spin: isLoading }" />
+          </button>
+        </div>
       </div>
     </div>
+
   </div>
+
 </template>
 
 <script setup>
-import { ref, computed, onMounted, nextTick, provide } from 'vue';
+import { ref, computed, onMounted, nextTick, provide, watch } from 'vue';
 import { useAppStore } from '../stores/appStore';
 import { useChatHistoryStore } from '../stores/chatHistoryStore';
 import Icon from './Icon.vue';
@@ -66,6 +86,12 @@ const newMessage = ref('');
 // ref to the textarea element for autosize
 const messageTextarea = ref(null);
 
+// ref to the messages container for scrolling
+const messagesContainer = ref(null);
+
+// ref for scroll to bottom button visibility
+const showScrollButton = ref(false);
+
 // Loading and error states for requests
 const isLoading = ref(false);
 
@@ -73,7 +99,19 @@ const isLoading = ref(false);
 const currentController = ref(null);
 
 onMounted(() => {
-  nextTick(adjustTextareaHeight);
+  nextTick(() => {
+    adjustTextareaHeight();
+    if (chatMessages.value.length > 0) {
+      scrollToBottom();
+    }
+  });
+});
+
+// Watch for changes in chatMessages to update scroll button visibility
+watch(chatMessages, () => {
+  nextTick(() => {
+    onScroll();
+  });
 });
 
 function adjustTextareaHeight() {
@@ -83,6 +121,22 @@ function adjustTextareaHeight() {
   textarea.style.height = 'auto';
   const newHeight = Math.min(textarea.scrollHeight, 300);
   textarea.style.height = `${newHeight}px`;
+}
+
+function scrollToBottom() {
+  const container = messagesContainer.value;
+  if (container) {
+    container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' });
+    showScrollButton.value = false;
+  }
+}
+
+function onScroll() {
+  const container = messagesContainer.value;
+  if (container) {
+    const { scrollTop, scrollHeight, clientHeight } = container;
+    showScrollButton.value = scrollTop + clientHeight < scrollHeight - 1; // threshold 1px
+  }
 }
 
 function onTextareaInput() {
@@ -144,6 +198,8 @@ const sendMessage = async () => {
       options: userOptions,
     });
 
+    nextTick(() => scrollToBottom());
+
     const body = {
       context: chatMessages.value,
       llmSettings: {
@@ -201,6 +257,8 @@ const sendMessage = async () => {
       // store.addChatMessage(msg);
       historyStore.addMessageToCurrentChat(msg);
     }
+
+    nextTick(() => scrollToBottom());
   } catch (e) {
     const isAbort = e?.message === 'Operation aborted' || e?.name === 'AbortError' || /aborted/i.test(e?.message || '');
     const errMsg = isAbort ? 'Request cancelled by user.' : (e?.message ? `Request failed: ${e.message}` : 'Request failed');
@@ -243,6 +301,7 @@ defineExpose({
   flex-direction: column;
   height: 100%;
   box-sizing: border-box;
+  position: relative;
 }
 
 .messages {
@@ -287,7 +346,67 @@ defineExpose({
   display: flex;
   align-items: flex-start;
   gap: 0.5rem;
-  max-width: 95%;
+  max-width: 100%;
+}
+
+.message.typing-indicator {
+  align-items: center;
+  opacity: 0.9;
+}
+
+.typing-bubble {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  background-color: var(--color-background-secondary);
+  border-radius: 0.75rem;
+  padding: 0.6rem 0.8rem;
+  box-shadow: inset 0 0 0 1px var(--color-border);
+  color: var(--color-text);
+  font-size: 0.9rem;
+}
+
+.typing-bubble p {
+  margin: 0;
+  font-weight: 500;
+}
+
+.typing-dots {
+  display: flex;
+  gap: 0.3rem;
+}
+
+.typing-dots .dot {
+  width: 0.6rem;
+  height: 0.6rem;
+  background-color: var(--color-primary);
+  border-radius: 50%;
+  animation: typingPulse 1s infinite ease-in-out;
+}
+
+.typing-dots .dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.typing-dots .dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes typingPulse {
+  0% {
+    transform: translateY(0);
+    opacity: 0.35;
+  }
+
+  50% {
+    transform: translateY(-2px);
+    opacity: 0.9;
+  }
+
+  100% {
+    transform: translateY(0);
+    opacity: 0.35;
+  }
 }
 
 .message.human {
@@ -316,13 +435,6 @@ defineExpose({
   align-items: center;
   justify-content: center;
   color: var(--color-text-on-surface);
-}
-
-.content {
-  background-color: var(--color-background-secondary);
-  padding: 0.75rem 1rem;
-  border-radius: 0.5rem;
-  max-width: 85%;
 }
 
 .text {
@@ -508,5 +620,28 @@ textarea[disabled] {
     margin-left: 0;
     color: var(--color-text-muted);
   }
+}
+
+.scroll-to-bottom-btn {
+  position: absolute;
+  margin-top: -45px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid var(--color-border);
+  background-color: var(--color-background);
+  color: var(--color-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  transition: background-color 0.2s ease, opacity 0.2s ease;
+}
+
+.scroll-to-bottom-btn:hover {
+  background-color: var(--color-surface-hover);
 }
 </style>

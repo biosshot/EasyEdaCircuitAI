@@ -53,6 +53,7 @@
 		"dompurify": "^3.3.0",
 		"fontkit": "^2.0.4",
 		"highlight.js": "^11.11.1",
+		"katex": "^0.16.27",
 		"lucide-vue-next": "^0.552.0",
 		"marked": "^16.4.1",
 		"papaparse": "^5.5.3",

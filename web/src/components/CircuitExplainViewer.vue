@@ -17,7 +17,14 @@ const props = defineProps({
 
 // Fallback, если парсинг JSON провалился — отображаем как plain text или markdown
 const html = computed(() => {
-    const html = marked.parse(props.result, { async: false })
+    let content = props.result.replace(/\[(.*?)\]/gms, (match, formula) => {
+        // Если формула содержит LaTeX символы (например, \), считаем её формулой
+        if (formula.includes('\\')) {
+            return `\n$$${formula}$$\n`;
+        }
+        return match; // Иначе оставляем как есть
+    });
+    const html = marked.parse(content, { async: false })
     return DOMPurify.sanitize(html, {
         ADD_ATTR: ['target'],
         FORBID_TAGS: ['script', 'style', 'iframe'],

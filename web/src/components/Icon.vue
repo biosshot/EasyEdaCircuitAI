@@ -4,12 +4,12 @@
 
 <script setup>
 import { defineAsyncComponent, computed } from 'vue';
-import { Zap, Cpu, CircleStop, User, Send, FileText, Search, MessageSquare, BoxSelect, AudioWaveform, Settings, PauseCircle, Plus, History, X, Trash2, SendHorizonal, ListRestart, ChevronUp, Check } from 'lucide-vue-next';
+import { Zap, Cpu, CircleStop, User, Send, FileText, Search, MessageSquare, BoxSelect, AudioWaveform, Settings, PauseCircle, Plus, History, X, Trash2, SendHorizonal, ListRestart, ChevronUp, ChevronDown, Check } from 'lucide-vue-next';
 const icons = {
   Zap, Cpu, User, Send, FileText, Search, MessageSquare,
   BoxSelect, AudioWaveform, Settings, PauseCircle, Plus,
   History, X, Trash2, SendHorizonal, CircleStop, ListRestart,
-  ChevronUp, Check
+  ChevronUp, ChevronDown, Check
 };
 
 const props = defineProps({
