@@ -86,17 +86,25 @@ function switchToChat(chatId) {
     }
 }
 
-function deleteChat(chatId) {
+async function deleteChat(chatId) {
     if (props.isLoading) return;
 
-    historyStore.deleteChat(chatId);
+    try {
+        await historyStore.deleteChat(chatId);
+    } catch (e) {
+        console.error('Failed to delete chat:', e);
+    }
 }
 
-function clearAllChats() {
+async function clearAllChats() {
     if (props.isLoading) return;
 
     if (confirm('Are you sure you want to delete all chats?')) {
-        historyStore.clearAllChats();
+        try {
+            await historyStore.clearAllChats();
+        } catch (e) {
+            console.error('Failed to clear all chats:', e);
+        }
         // store.setChatMessages([]);
         showChatHistory.value = false;
     }

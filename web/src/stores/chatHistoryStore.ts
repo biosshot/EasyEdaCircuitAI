@@ -14,6 +14,7 @@ export interface ChatSession {
     messages: ChatMessage[];
     createdAt: number;
     updatedAt: number;
+    cachedPdfs: string[];
 }
 
 export const useChatHistoryStore = defineStore('chatHistory', () => {
@@ -30,7 +31,10 @@ export const useChatHistoryStore = defineStore('chatHistory', () => {
             const data = storage.getItem(STORAGE_KEY);
             if (data) {
                 const sessions: ChatSession[] = JSON.parse(data);
-                chatSessions.value = new Map(sessions.map(s => [s.id, s]));
+                chatSessions.value = new Map(sessions.map(s => {
+                    if (!s.cachedPdfs) s.cachedPdfs = [];
+                    return [s.id, s];
+                }));
             }
 
             const savedCurrentId = storage.getItem(CURRENT_CHAT_KEY);
@@ -87,6 +91,7 @@ export const useChatHistoryStore = defineStore('chatHistory', () => {
             ],
             createdAt: Date.now(),
             updatedAt: Date.now(),
+            cachedPdfs: []
         };
 
         chatSessions.value.set(id, session);
@@ -123,10 +128,22 @@ export const useChatHistoryStore = defineStore('chatHistory', () => {
     }
 
     // Delete a chat session
-    function deleteChat(id: string): boolean {
+    async function deleteChat(id: string): Promise<boolean> {
+        const chat = chatSessions.value.get(id);
+        if (!chat) return false;
+
         const deleted = chatSessions.value.delete(id);
 
         if (deleted) {
+            // Delete cached PDFs
+            for (const pdf of chat.cachedPdfs) {
+                try {
+                    await (window as any).eda.sys_FileSystem.removeFileFromFileSystem(pdf);
+                } catch (e) {
+                    console.error('Failed to delete cached PDF:', pdf, e);
+                }
+            }
+
             // If deleted chat was current, switch to another or clear
             if (currentChatId.value === id) {
                 const remaining = Array.from(chatSessions.value.keys());
@@ -154,6 +171,15 @@ export const useChatHistoryStore = defineStore('chatHistory', () => {
         return true;
     }
 
+    // Add cached PDF to current chat
+    function addCachedPdf(filename: string): void {
+        const chat = getCurrentChat();
+        if (chat && !chat.cachedPdfs.includes(filename)) {
+            chat.cachedPdfs.push(filename);
+            saveToStorage();
+        }
+    }
+
     // Update chat title
     function updateChatTitle(id: string, title: string): boolean {
         const chat = chatSessions.value.get(id);
@@ -167,7 +193,18 @@ export const useChatHistoryStore = defineStore('chatHistory', () => {
     }
 
     // Clear all chat history
-    function clearAllChats(): void {
+    async function clearAllChats(): Promise<void> {
+        // Delete all cached PDFs
+        for (const chat of chatSessions.value.values()) {
+            for (const pdf of chat.cachedPdfs) {
+                try {
+                    await (window as any).eda.sys_FileSystem.removeFileFromFileSystem(pdf);
+                } catch (e) {
+                    console.error('Failed to delete cached PDF:', pdf, e);
+                }
+            }
+        }
+
         chatSessions.value.clear();
         currentChatId.value = null;
         storage.removeItem(STORAGE_KEY);
@@ -206,6 +243,7 @@ export const useChatHistoryStore = defineStore('chatHistory', () => {
         switchToChat,
         deleteChat,
         addMessageToCurrentChat,
+        addCachedPdf,
         updateChatTitle,
         clearAllChats,
         isCurrentChatEmpty,

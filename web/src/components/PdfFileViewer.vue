@@ -24,6 +24,10 @@
 <script setup>
 import { apiUrl, authorization, fetchEda } from '../fetchWithTask.ts'
 import { computed, ref, watch, onBeforeUnmount, onMounted } from 'vue'
+import { isEasyEda } from '../utils.ts'
+import { useChatHistoryStore } from '../stores/chatHistoryStore'
+
+const chatStore = useChatHistoryStore()
 
 const props = defineProps({
     result: {
@@ -52,7 +56,7 @@ const filename = computed(() => {
 const finalSrc = ref('')
 const error = ref('')
 
-async function loadWithNoCors() {
+async function loadPdf() {
     const src = url.value;
 
     // Очистим предыдущий object URL
@@ -61,9 +65,20 @@ async function loadWithNoCors() {
         finalSrc.value = ''
     }
 
-    if (!src) return
+    if (!src) return;
 
-    if (!src) return
+    // Try to load from cache if isEasyEda
+    if (isEasyEda()) {
+        try {
+            const blob = await (window).eda.sys_FileSystem.readFileFromFileSystem(filename.value);
+            if (!blob) throw new Error('Not cached')
+            finalSrc.value = URL.createObjectURL(blob);
+            error.value = '';
+            return;
+        } catch (e) {
+            // Not cached, proceed to load
+        }
+    }
 
     try {
         // Попытка загрузить ресурс (fetchEda инкапсулирует поведение запросов)
@@ -93,24 +108,32 @@ async function loadWithNoCors() {
         if (!isPdf) {
             error.value = 'The downloaded file is not a PDF or is corrupted.'
             finalSrc.value = ''
-            return finalSrc.value
+            return
         }
 
-        // Создаём object URL только если это PDF
+        // Создаём object URL
         finalSrc.value = URL.createObjectURL(blob)
         error.value = ''
+
+        // Cache if isEasyEda
+        if (isEasyEda()) {
+            try {
+                await (window).eda.sys_FileSystem.saveFileToFileSystem(filename.value, blob);
+                chatStore.addCachedPdf(filename.value);
+            } catch (cacheError) {
+                console.error('Failed to cache PDF:', cacheError);
+            }
+        }
     } catch (e) {
         // Ошибка при загрузке
         error.value = 'Failed to upload file.'
         finalSrc.value = '';
     }
-
-    return finalSrc.value;
 }
 
 // Следим за изменением URL и перезагружаем PDF
 watch(url, () => {
-    loadWithNoCors()
+    loadPdf()
 }, { immediate: true })
 
 onBeforeUnmount(() => {

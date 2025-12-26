@@ -56,13 +56,19 @@ const parsedMessage = computed(() => {
 const markdownElement = ref(null);
 
 const safeHtml = computed(() => {
-    let content = props.message.content.replace(/\\\[(.*?)\\\]/gms, (match, formula) => {
-        // Если формула содержит LaTeX символы (например, \), считаем её формулой
-        if (formula.includes('\\')) {
-            return `\n$$${formula}$$\n`;
+    let content = props.message.content.replace(
+        /\\\[(.*?)\\\]|\\\(([^)]*?[\\_^{}].*?)\\\)/gms,
+        (match, displayFormula, inlineFormula) => {
+            if (displayFormula !== undefined && displayFormula.includes('\\')) {
+                return `\n$$${displayFormula}$$\n`;
+            }
+            if (inlineFormula !== undefined) {
+                return `$${inlineFormula}$`;
+            }
+            return match; // не содержит LaTeX — оставляем без изменений
         }
-        return match; // Иначе оставляем как есть
-    });
+    );
+
 
     let html = marked.parse(content, { async: false });
 
@@ -78,7 +84,7 @@ const safeHtml = computed(() => {
 .container {
     display: flex;
     flex-direction: column;
-    max-width: 100%;
+    max-width: 95%;
 }
 
 .content {

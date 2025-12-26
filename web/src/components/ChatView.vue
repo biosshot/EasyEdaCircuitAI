@@ -133,9 +133,13 @@ function scrollToBottom() {
 
 function onScroll() {
   const container = messagesContainer.value;
+
   if (container) {
     const { scrollTop, scrollHeight, clientHeight } = container;
     showScrollButton.value = scrollTop + clientHeight < scrollHeight - 1; // threshold 1px
+  }
+  else {
+    showScrollButton.value = false;
   }
 }
 

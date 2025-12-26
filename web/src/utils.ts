@@ -15,8 +15,10 @@ const blockRule = /^(\${1,2})\n((?:\\[^]|[^\\])+?)\n\1(?:\n|$)/;
 function markedKatex(options = {}) {
     return {
         extensions: [
-            inlineKatex(options, createRenderer(options, false)),
-            blockKatex(options, createRenderer(options, true)),
+            inlineKatex({ ...options, nonStandard: false }, createRenderer({ ...options, nonStandard: false }, false)),
+            blockKatex({ ...options, nonStandard: false }, createRenderer({ ...options, nonStandard: false }, true)),
+            inlineKatex({ ...options, nonStandard: true }, createRenderer({ ...options, nonStandard: true }, false)),
+            blockKatex({ ...options, nonStandard: true }, createRenderer({ ...options, nonStandard: true }, true)),
         ],
     };
 }
