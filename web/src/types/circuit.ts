@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { LCSC_uuid } from "./lcsc";
+import { LCSC_uuid } from "./lcsc.ts";
 
 const PinSchema = () => z.object({
     pin_number: z.number().describe('Pin number.'),
@@ -7,7 +7,7 @@ const PinSchema = () => z.object({
     signal_name: z.string().describe('The name of the signal to which the pin is connected. (Only name)'),
 });
 
-const BaseComponentSchema = () => z.object({
+export const BaseComponentSchema = () => z.object({
     designator: z.string().describe('Component identifier (e.g., "U1", "R5", "J1", "X1").'),
     value: z.string().describe('Minimum description: for simple components — only the nominal value; for microcircuits — only the name. Only ASCII symbols (e.g., "LM358", "10nF", "100k").'),
     pins: z.array(PinSchema()).describe('Pin details.'),
@@ -57,10 +57,28 @@ export const CircuitWithoutBlocksStruct = () => z.object({
     components: z.array(BaseComponentSchema()).describe('Components'),
 });
 
-export const CircuitWithPosStruct = () => z.object({
+const ElkPoint = () => z.object({
+    x: z.number(),
+    y: z.number()
+})
+
+export const CircuitAssemblyStruct = () => z.object({
     metadata: MetadataSchema().describe('Metadata'),
     components: z.array(ComponentWithPosSchema()).describe('Components'),
-    edges: z.array(z.any()),
+    edges: z.array(z.object({
+        sources: z.array(z.string()),
+        targets: z.array(z.string()),
+        sections: z.array(z.object({
+            id: z.string(),
+            startPoint: ElkPoint(),
+            endPoint: ElkPoint(),
+            bendPoints: z.array(ElkPoint()).nullable(),
+            incomingShape: z.string().nullable(),
+            outgoingShape: z.string().nullable(),
+            incomingSections: z.array(z.string()).nullable(),
+            outgoingSections: z.array(z.string()).nullable(),
+        })),
+    })),
     blocks: z.array(BlockSchema()).describe('Blocks'),
     blocks_rect: z.array(z.object({
         name: z.string().describe('Block short name (e.g., "Preamp").'),
@@ -69,6 +87,14 @@ export const CircuitWithPosStruct = () => z.object({
         y: z.number(),
         width: z.number(),
         height: z.number(),
+    })).optional(),
+    assembly_options: z.object({
+        centered: z.boolean().optional()
+    }).optional(),
+    added_net: z.array(z.object({
+        designator: z.string(),
+        pin_number: z.number(),
+        net: z.string(),
     })).optional()
 });
 
@@ -83,6 +109,10 @@ const ExplainComponentSchema = () => z.object({
     value: z.string().describe('Minimum description: for simple components — only the nominal value; for microcircuits — only the name. Only ASCII symbols (e.g., "LM358", "10nF", "100k").'),
     pins: z.array(ExplainPinSchema()).describe('Pin details.'),
     part_uuid: LCSC_uuid().nullable().describe('Unique component identifier.'),
+    pos: z.object({
+        x: z.number(),
+        y: z.number()
+    }).optional()
 });
 
 export const ExplainCircuitStruct = () => z.object({
@@ -92,7 +122,7 @@ export const ExplainCircuitStruct = () => z.object({
 export const DiagnosticAlgoritm = () => z.object({});
 
 export type ExplainCircuit = z.infer<ReturnType<typeof ExplainCircuitStruct>>;
-export type CircuitWithPos = z.infer<ReturnType<typeof CircuitWithPosStruct>>;
+export type CircuitAssembly = z.infer<ReturnType<typeof CircuitAssemblyStruct>>;
 export type CircuitWithoutBlocks = z.infer<ReturnType<typeof CircuitWithoutBlocksStruct>>;
 export type Circuit = z.infer<ReturnType<typeof CircuitStruct>>;
 export type CircuitComponent = z.infer<ReturnType<typeof BaseComponentSchema>>;

@@ -14,7 +14,7 @@ export interface ThemeConfig {
 }
 
 /**
- * Темная тема (по умолчанию)
+ * Темная тема
  */
 export const darkTheme: ThemeConfig = {
     name: 'dark',
@@ -58,7 +58,7 @@ export const darkTheme: ThemeConfig = {
 };
 
 /**
- * Светлая тема
+ * Светлая тема (по умолчанию)
  */
 export const lightTheme: ThemeConfig = {
     name: 'light',

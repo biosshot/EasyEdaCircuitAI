@@ -16,10 +16,13 @@
 import { PDFDocument, rgb } from 'pdf-lib';
 import * as fontkit from 'fontkit';
 import Papa from 'papaparse';
-import { assembleCircuit } from './assembleCircuit';
+import { assembleCircuit } from './eda/assemble';
 import extension from '../extension.json';
+import { getSchematic } from './eda/schematic';
 
 (eda as any).assembleCircuit = assembleCircuit;
+(eda as any).getSchematic = getSchematic;
+
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function activate(status?: 'onStartupFinished', arg?: string) { }

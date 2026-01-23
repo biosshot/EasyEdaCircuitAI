@@ -9,7 +9,7 @@ import { getTheme, applyThemeVariables, type ThemeName } from '../theme/themes';
 const THEME_STORAGE_KEY = 'app-theme';
 
 // Реактивное состояние текущей темы
-const currentTheme = ref<ThemeName>('dark');
+const currentTheme = ref<ThemeName>('light');
 
 // Установить новую тему
 export function setTheme(themeName: ThemeName): void {

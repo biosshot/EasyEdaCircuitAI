@@ -30,6 +30,15 @@ export type CircuitAgentResult = {
     };
 };
 
+export type CompletionAction = {
+    title: string;
+    description: string;
+};
+
+export type CompletionsResponse = {
+    actions: CompletionAction[];
+};
+
 export type ParsedMessage =
     | { type: 'component_search_result'; result: any }
     | { type: 'circuit_explain_result'; result: any }

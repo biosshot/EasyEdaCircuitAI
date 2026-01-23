@@ -4,49 +4,63 @@
       <template #controls v-if="activeTab === 'chat'">
         <ChatControls :is-loading="chatViewRef?.isLoading || false" />
       </template>
+      <template #controls v-if="activeTab === 'completions'"></template>
       <template #controls v-else-if="activeTab === 'settings'">
         <SettingsControls />
       </template>
     </Navbar>
 
     <main>
-      <!-- <GenerateView v-if="activeTab === 'generate'" /> -->
-      <ChatView v-if="activeTab === 'chat'" ref="chatViewRef" />
-      <SettingsView v-else-if="activeTab === 'settings'" />
+      <KeepAlive>
+        <ChatView v-if="activeTab === 'chat'" ref="chatViewRef" />
+      </KeepAlive>
+      <KeepAlive>
+        <CompletionsView v-if="activeTab === 'completions'" />
+      </KeepAlive>
+      <KeepAlive>
+        <SettingsView v-if="activeTab === 'settings'" />
+      </KeepAlive>
     </main>
   </div>
 </template>
 
-<script setup>
-import { computed, ref, onMounted, watchEffect } from 'vue';
-import { useAppStore } from './stores/appStore.ts';
-import { setTheme } from './composables/useTheme.ts';
-import Navbar from './components/Navbar.vue';
-import ChatView from './components/ChatView.vue';
-import ChatControls from './components/ChatControls.vue';
-import SettingsView from './components/SettingsView.vue';
-import './theme/theme-variables.css';
-import { useSettingsStore } from './stores/settingsStore.ts';
-import SettingsControls from './components/SettingsControls.vue';
-
+<script setup lang="ts">
+import { computed, ref, onMounted, watchEffect, Component } from 'vue';
+import { useAppStore } from './stores/app-store';
+import { setTheme } from './composables/useTheme';
+import Navbar from './components/layout/Navbar.vue';
+import ChatView from './components/chat/ChatView.vue';
+import CompletionsView from './components/completions/CompletionsView.vue';
+import ChatControls from './components/chat/ChatControls.vue';
+import SettingsView from './components/settings/SettingsView.vue';
+import { useSettingsStore } from './stores/settings-store';
+import SettingsControls from './components/settings/SettingsControls.vue';
+import { __MODE__ } from './mode';
+import { ThemeName } from './theme/themes';
 
 const store = useAppStore();
-// window.store = store;
+const settingsStore = useSettingsStore();
 
 const activeTab = computed(() => store.activeTab);
-const chatViewRef = ref(null);
+const chatViewRef = ref<typeof ChatView | null>(null);
 
 // Инициализировать тему при загрузке приложения
 onMounted(() => {
-  const settingsStore = useSettingsStore();
   settingsStore.initSettings();
-  setTheme(settingsStore.getSetting('theme') || 'light');
+  setTheme((settingsStore.getSetting('theme') || 'light') as ThemeName);
 
   watchEffect(() => {
     const theme = settingsStore.getSetting('theme') || 'light';
-    setTheme(theme);
+    setTheme(theme as ThemeName);
   });
 });
+
+if (__MODE__ === 'DEV') {
+  const title = document.querySelector('title');
+  if (title)
+    title.textContent += ' DEV';
+}
+
 </script>
 
 <style>
@@ -80,6 +94,34 @@ body {
   /* прокрутка только внутри main, если нужно */
 }
 
+/* Placeholder styles when there are no messages */
+.placeholder {
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.placeholder-content {
+  text-align: center;
+  color: var(--color-text-muted);
+  max-width: 420px;
+}
+
+.empty-title {
+  font-size: 1.25rem;
+  color: var(--color-text);
+  margin-bottom: 0.5rem;
+}
+
+.empty-sub {
+  margin-bottom: 0.5rem;
+}
+
+.empty-hint {
+  font-size: 0.9rem;
+  color: var(--color-text-tertiary);
+}
+
 /* === Стили для скроллбара === */
 
 /* Chrome, Edge, Safari */
@@ -96,9 +138,8 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--scrollbar-bg);
+  background: var(--color-border);
   border-radius: 10px;
-  border: 2px solid var(--scrollbar-border);
 }
 
 ::-webkit-scrollbar-thumb:hover {
@@ -111,6 +152,6 @@ body {
 
 /* Дополнительно: при наведении на область прокрутки — улучшаем вид */
 *::-webkit-scrollbar-thumb:active {
-  background: var(--scrollbar-active);
+  background: var(--color-border-light);
 }
 </style>
