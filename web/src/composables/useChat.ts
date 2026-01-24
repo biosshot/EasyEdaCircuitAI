@@ -78,12 +78,8 @@ export default function useChat() {
                     options: userOptions,
                 });
             } else {
-                if (chatMessages.value.length > retryMesIdx) {
-                    if (retryMesIdx !== -1)
-                        historyStore.setMessagesToCurrentChat(chatMessages.value.slice(0, retryMesIdx));
-                } else {
-                    throw new Error('Retry failed: original message not found.');
-                }
+                if (retryMesIdx !== -1)
+                    historyStore.setMessagesToCurrentChat(chatMessages.value.slice(0, retryMesIdx));
             }
 
             const body = {
@@ -150,6 +146,9 @@ export default function useChat() {
     }
 
     function retrySend(messageIdx: number) {
+        if (chatMessages.value[messageIdx]?.role === 'human')
+            ++messageIdx;
+
         sendMessage(true, messageIdx);
     }
 

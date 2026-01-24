@@ -1,13 +1,14 @@
 <template>
-    <textarea ref="textarea" v-model="model" :placeholder="props.placeholder" @keydown="onTextareaKeydown"></textarea>
+    <textarea ref="textarea" v-model="model" :placeholder="props.placeholder" @keydown="onTextareaKeydown"
+        :style="`max-height: ${maxHeight ?? 240}px;`"></textarea>
 </template>
 
 <script setup lang="ts">
-import { nextTick, ref, watch } from 'vue';
+import { nextTick, onMounted, ref, watch } from 'vue';
 
 const model = defineModel<string>();
 
-const props = defineProps<{ placeholder: string }>();
+const props = defineProps<{ placeholder: string, maxHeight?: number }>();
 const textarea = ref<HTMLInputElement | null>(null);
 const emit = defineEmits(['enter'])
 
@@ -27,6 +28,10 @@ function onTextareaKeydown(e: KeyboardEvent) {
     }
 }
 
+onMounted(() => {
+    nextTick(() => adjustTextareaHeight())
+})
+
 watch(model, () => {
     nextTick(() => adjustTextareaHeight())
 });
@@ -41,7 +46,6 @@ textarea {
     border: none;
     color: var(--color-text);
     font-size: 16px;
-    max-height: 240px;
     resize: none;
     overflow: auto;
     outline: none;

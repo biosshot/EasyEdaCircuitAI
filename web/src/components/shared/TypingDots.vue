@@ -5,13 +5,22 @@
             <span class="dot"></span>
             <span class="dot"></span>
         </div>
-        <p v-if="props.status" class="progress-text">{{ props.status }}</p>
+        <p v-if="props.status" class="progress-text">{{ status }}</p>
     </div>
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue';
+
 
 const props = defineProps<{ status: string }>();
+
+const status = computed(() => {
+    const MAX = 320;
+    if (props.status.length > MAX)
+        return props.status.slice(0, MAX) + '...'
+    return props.status;
+})
 
 </script>
 
@@ -31,7 +40,14 @@ const props = defineProps<{ status: string }>();
     white-space: pre-line;
     word-wrap: break-word;
     overflow-wrap: break-word;
-    max-width: 100%;
+    max-width: 90%;
+    overflow: hidden;
+    /* 
+    line-clamp: 8;
+    text-overflow: ellipsis;
+    -webkit-line-clamp: 8;
+    display: -webkit-box;
+    -webkit-box-orient: vertical; */
 }
 
 .typing-dots {

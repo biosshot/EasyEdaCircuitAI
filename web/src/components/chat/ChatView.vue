@@ -1,22 +1,8 @@
 <template>
   <div class="chat-view">
     <div class="messages" v-if="chatMessages?.length" ref="messagesContainer" @scroll="onScroll">
-      <div v-for="(msg, idx) in chatMessages" :class="['message', msg.role]">
-        <div v-if="msg.role === 'ai'" class="avatar">
-          <Icon name="Cpu" size="20" />
-        </div>
-
-        <div>
-          <ChatMessageContent :message="msg" :idx="idx" @inline-buttons="onInlineButtons" />
-          <div v-if="msg.role === 'ai'">
-            <MessageBottomControls @retry-send="retrySend(idx)" />
-          </div>
-        </div>
-
-        <div v-if="msg.role === 'human'" class="avatar">
-          <Icon name="User" size="20" />
-        </div>
-      </div>
+      <ChatMessage v-for="(msg, idx) in chatMessages" :msg="msg" :idx="idx" @retry-send="retrySend(idx)"
+        @edit-message="onEditMessage" @inline-buttons="onInlineButtons" />
 
       <div v-if="isLoading" class="message ai typing-indicator">
         <div class="avatar">
@@ -28,7 +14,7 @@
 
       <div v-if="errorMessage" class="error-container">
         <ErrorBanner :message="errorMessage" />
-        <MessageBottomControls @retry-send="retrySend(-1)" />
+        <MessageBottomControls @retry="retrySend(-1)" :show="['retry']" />
       </div>
 
     </div>
@@ -90,6 +76,7 @@ import AdjTextarea from './AdjTextarea.vue';
 import { useSettingsStore } from '../../stores/settings-store';
 import ErrorBanner from '../shared/ErrorBanner.vue';
 import Timer from '../shared/Timer.vue';
+import ChatMessage from './ChatMessage.vue';
 
 const settingsStore = useSettingsStore();
 
@@ -144,6 +131,20 @@ function onScroll() {
     showScrollButton.value = scrollTop + clientHeight < scrollHeight - 10;
   } else {
     showScrollButton.value = false;
+  }
+}
+
+
+function onEditMessage(originalIdx: number, newContent: string) {
+  // Update the message content and send as retry
+  if (chatMessages.value.length > originalIdx) {
+    // Replace the message content with edited version
+    const message = chatMessages.value[originalIdx];
+    if (message.role === 'human') {
+      message.content = newContent;
+      // Send as retry to the originalIdx (which will send from that message onwards)
+      retrySend(originalIdx);
+    }
   }
 }
 
@@ -203,13 +204,6 @@ defineExpose({
   color: var(--color-text-tertiary);
 }
 
-.message {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.5rem;
-  max-width: 100%;
-}
-
 .progress-text {
   margin-top: 0.5rem;
   font-size: 0.85rem;
@@ -219,39 +213,6 @@ defineExpose({
   word-wrap: break-word;
   overflow-wrap: break-word;
   max-width: 100%;
-}
-
-.message.human {
-  align-self: flex-end;
-  flex-direction: row-reverse;
-}
-
-.message.ai .avatar {
-  background-color: var(--color-primary);
-  border-radius: 50%;
-  min-width: 32px;
-  max-width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--color-text-on-primary);
-}
-
-.message.human .avatar {
-  background-color: var(--color-surface-hover);
-  border-radius: 50%;
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--color-text-on-surface);
-}
-
-.text {
-  margin-bottom: 0.25rem;
-  word-break: break-word;
 }
 
 .input-area {
