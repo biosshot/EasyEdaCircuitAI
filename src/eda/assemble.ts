@@ -420,7 +420,7 @@ async function palceNet(nets: CircuitAssembly['added_net'], placeComponents: Pla
             const wire = await eda.sch_PrimitiveWire.create([pinX, pinY, endX, endY], net.net);
             if (wire) recorder?.add({ primitiveId: wire.getState_PrimitiveId() });
         } catch (err) {
-            eda.sys_Message.showToastMessage(`Wire error: ${(err as any).message}`, ESYS_ToastMessageType.ERROR);
+            eda.sys_Message.showToastMessage(`Wire error: "${(err as any).message}" "${net.net}" ${JSON.stringify([pinX, pinY, endX, endY])}`, ESYS_ToastMessageType.ERROR);
         }
     }
 }

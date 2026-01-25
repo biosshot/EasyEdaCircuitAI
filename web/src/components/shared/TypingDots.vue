@@ -40,6 +40,7 @@ const status = computed(() => {
     word-wrap: break-word;
     overflow-wrap: break-word;
     max-width: 90%;
+    min-width: 100px;
     overflow: hidden;
     /* 
     line-clamp: 8;

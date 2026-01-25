@@ -3,7 +3,7 @@ import { ref, computed, onScopeDispose, nextTick } from 'vue';
 import { fetchWithTask } from '../api/fetch-with-task';
 import { useChatHistoryStore } from '../stores/chat-history-store';
 import { useSettingsStore } from '../stores/settings-store';
-import { getSchematic } from '../eda/schematic';
+import { getAllPrimitiveId, getSchematic } from '../eda/schematic';
 import { isEasyEda, showToastMessage } from '../eda/utils';
 import type { InlineButton } from '../types/inline-button';
 import { formatError } from '../utils/error';
@@ -23,6 +23,7 @@ export default function useChat() {
 
     const options = ref([
         { value: true, label: 'Upload selected', icon: 'BoxSelect', id: 'Selected circuit' },
+        { value: false, label: 'Upload all', icon: 'BoxSelect', id: 'Selected circuit' },
     ]);
 
     function onInlineButtons(data: { idx: number; buttons: InlineButton[] }) {
@@ -39,18 +40,31 @@ export default function useChat() {
 
             if (!opt.value) continue;
 
-            if (opt.id === 'Selected circuit' && isEasyEda()) {
+            if (opt.label === 'Upload selected' && isEasyEda()) {
                 try {
                     const primitiveIds = await eda.sch_SelectControl.getAllSelectedPrimitives_PrimitiveId().catch(() => []);
                     if (primitiveIds.length) {
-                        progressStatus.value = 'Load selected circuit...';
+                        progressStatus.value = 'Upload selected...';
                         userOptions[opt.id] = await getSchematic(primitiveIds);
                     }
                 } catch (e: any) {
-                    console.warn('Failed to load selected schematic', e);
-                    showToastMessage('Failed to load selected schematic: ' + e.message, 'error');
+                    console.warn('Failed to load selected circuit', e);
+                    showToastMessage('Failed to load selected circuit: ' + e.message, 'error');
                 }
-            } else {
+            }
+            else if (opt.label === 'Upload all' && isEasyEda()) {
+                try {
+                    const primitiveIds = await getAllPrimitiveId();
+                    if (primitiveIds.length) {
+                        progressStatus.value = 'Upload all...';
+                        userOptions[opt.id] = await getSchematic(primitiveIds);
+                    }
+                } catch (e: any) {
+                    console.warn('Failed to load all circuit', e);
+                    showToastMessage('Failed to load all circuit: ' + e.message, 'error');
+                }
+            }
+            else {
                 // userOptions[opt.id] = opt.value;
                 console.warn('Unknown option')
             }

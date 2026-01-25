@@ -42,7 +42,7 @@
 
       <div class="input-container">
         <div class="input-options">
-          <IconButton class="input-option" v-for="opt in options" :key="opt.id" :icon="opt.icon" :size="10"
+          <IconButton class="input-option" v-for="opt in options" :key="opt.label" :icon="opt.icon" :size="10"
             :class="['option-btn', { active: opt.value }]" @click="opt.value = !opt.value" :disabled="isLoading">
             <label>{{ opt.label }}</label>
           </IconButton>
@@ -202,17 +202,6 @@ defineExpose({
 .empty-hint {
   font-size: 0.9rem;
   color: var(--color-text-tertiary);
-}
-
-.progress-text {
-  margin-top: 0.5rem;
-  font-size: 0.85rem;
-  color: var(--color-text-muted);
-  font-weight: 400;
-  white-space: pre-line;
-  word-wrap: break-word;
-  overflow-wrap: break-word;
-  max-width: 100%;
 }
 
 .input-area {
