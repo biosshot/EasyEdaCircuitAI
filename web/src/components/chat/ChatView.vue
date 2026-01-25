@@ -54,7 +54,7 @@
 
           <button @click="isLoading ? cancelRequest() : sendMessage()"
             :disabled="newMessage.trim() === '' && !isLoading">
-            <Icon :name="isLoading ? 'CircleStop' : 'SendHorizonal'" size="20" :class="{ spin: isLoading }" />
+            <Icon :name="isLoading ? 'Square' : 'SendHorizonal'" size="20" :class="{ spin: isLoading }" />
           </button>
         </div>
       </div>
@@ -226,22 +226,26 @@ defineExpose({
 
 .input-area button {
   padding: 0.75rem;
-  background-color: var(--color-primary);
-  color: var(--color-text-on-primary);
+  color: var(--color-primary);
+  background-color: transparent;
+  /* background-color: var(--color-primary); */
+  /* color: var(--color-text-on-primary); */
   border: none;
   border-radius: 0.5rem;
   cursor: pointer;
   transition: background-color 0.2s ease;
-  max-height: 56px;
+  max-height: 54px;
 }
 
 .input-area button:disabled {
-  background-color: var(--color-surface-hover);
-  color: var(--color-text-on-surface);
+  color: var(--color-border-dark);
+  /* background-color: var(--color-surface-hover); */
+  /* color: var(--color-text-on-surface); */
 }
 
 .input-area button:hover {
-  background-color: var(--color-primary-dark);
+  color: var(--color-primary-dark);
+  /* background-color: var(--color-primary-dark); */
 }
 
 .input-container {

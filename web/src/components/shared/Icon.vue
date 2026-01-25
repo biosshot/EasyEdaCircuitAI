@@ -12,7 +12,9 @@ import {
   MessageSquare, BoxSelect, AudioWaveform, Settings, PauseCircle, Plus, History,
   X, Trash2, SendHorizonal, ListRestart, ChevronUp, ChevronDown, Check, Replace,
   CircleCheckBig, Pencil,
-  Bookmark
+  Bookmark,
+  Square,
+  Pause
 } from 'lucide-vue-next';
 
 const icons: Record<string, FunctionalComponent> = {
@@ -20,7 +22,7 @@ const icons: Record<string, FunctionalComponent> = {
   BoxSelect, AudioWaveform, Settings, PauseCircle, Plus,
   History, X, Trash2, SendHorizonal, CircleStop, ListRestart,
   ChevronUp, ChevronDown, Check, Play, CircleAlert, RotateCw, Replace,
-  CircleCheckBig, Pencil, Bookmark
+  CircleCheckBig, Pencil, Bookmark, Square, Pause
 };
 
 const props = defineProps<{
@@ -31,6 +33,11 @@ const props = defineProps<{
 }>();
 
 const name = ref<string>(props.name);
+
+watch([props], () => {
+  console.log(props.name)
+  name.value = props.name;
+})
 
 const isAvatar = computed(() => {
   return (
