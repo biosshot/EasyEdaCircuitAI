@@ -1,9 +1,17 @@
+import { CircuitAssembly, ExplainCircuit } from "../types/circuit";
 import { isEasyEda } from "./utils";
 // @ts-ignore
 import type _ from '@jlceda/pro-api-types';
 
-export const assembleCircuit = async (circuit: any) => {
-    if (isEasyEda() && 'assembleCircuit' in eda && typeof eda.assembleCircuit === 'function') {
+declare global {
+    interface EDA {
+        assembleCircuit?: (circuit: CircuitAssembly) => Promise<void>,
+        getSchematic?: (primitiveIds?: string[]) => Promise<ExplainCircuit>,
+    }
+}
+
+export const assembleCircuit = async (circuit: CircuitAssembly) => {
+    if (isEasyEda() && typeof eda.assembleCircuit === 'function') {
         await eda.assembleCircuit(circuit);
     }
     else {

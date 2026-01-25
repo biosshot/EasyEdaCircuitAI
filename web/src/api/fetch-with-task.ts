@@ -2,10 +2,12 @@ import { __MODE__ } from "../mode";
 import { isEasyEda } from "../eda/utils";
 import { getUserAuth } from "../eda/user";
 
+type MyRequestInit = Omit<RequestInit, 'body'> & { body?: string | Blob | FormData | URLSearchParams | undefined };
+
 type FetchWithTaskInput = {
     url: string,
-    body: BodyInit,
-    fetchOptions: RequestInit,
+    body: object | string,
+    fetchOptions: MyRequestInit,
     pollIntervalMs?: number,
     timeoutMs?: number,
     onProgress?: ((s: string) => void)
@@ -13,7 +15,7 @@ type FetchWithTaskInput = {
 
 export async function fetchEda(
     input: string | URL | Request,
-    init?: RequestInit
+    init?: MyRequestInit
 ) {
     if (!isEasyEda()) return fetch(input, init);
 
@@ -23,18 +25,15 @@ export async function fetchEda(
             ? input.href
             : input.url;
 
-    const method = (init?.method || 'GET').toUpperCase();
+    const method = (init?.method || 'GET').toUpperCase() as "GET" | "POST" | "HEAD" | "PUT" | "DELETE" | "PATCH";
     if (!['GET', 'POST', 'HEAD', 'PUT', 'DELETE', 'PATCH'].includes(method)) {
         throw new TypeError(`Unsupported method: ${method}`);
     }
 
     let data;
     if (init?.body !== undefined) {
-        if (typeof init.body === 'string' || init.body instanceof Blob || init.body instanceof FormData || init.body instanceof URLSearchParams || init.body instanceof ArrayBuffer || ArrayBuffer.isView(init.body)) {
+        if (typeof init.body === 'string' || init.body instanceof Blob || init.body instanceof FormData || init.body instanceof URLSearchParams) {
             data = init.body;
-            if (init.body instanceof ArrayBuffer || ArrayBuffer.isView(init.body)) {
-                data = new Blob([init.body]);
-            }
         } else {
             data = JSON.stringify(init.body);
             if (!init.headers || !('content-type' in init.headers) && !('Content-Type' in init.headers)) {
@@ -43,7 +42,7 @@ export async function fetchEda(
         }
     }
 
-    return await eda.sys_ClientUrl.request(url, method as any, data as any, { headers: init?.headers, integrity: init?.integrity });
+    return await eda.sys_ClientUrl.request(url, method, data, { headers: init?.headers, integrity: init?.integrity });
 }
 
 export async function fetchWithTask({
@@ -66,7 +65,8 @@ export async function fetchWithTask({
             'Authorization': authorization,
             'x-eda-user': getUserAuth(),
         },
-        body: body,
+
+        body: typeof body === 'string' ? body : JSON.stringify(body),
     });
 
     if (!startRes.ok) {

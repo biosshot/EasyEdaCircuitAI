@@ -23,7 +23,7 @@ const applyOffset = (x: number, y: number, offset: Offset) => {
     return { x, y };
 }
 
-function chunkArray(arr: any[], size: number) {
+function chunkArray(arr: unknown[], size: number) {
     const chunkedArr = [];
     for (let i = 0; i < arr.length; i += size) {
         chunkedArr.push(arr.slice(i, i + size));
@@ -112,7 +112,9 @@ async function placeComponents(components: CircuitAssembly['components'], offset
 
             return { primitive_id, pins, designator };
         } catch (err) {
-            eda.sys_Message.showToastMessage(`Component error ${designator}: ${(err as any).message}`, ESYS_ToastMessageType.ERROR);
+            const eMes = (err instanceof Error) ? err.message : '';
+
+            eda.sys_Message.showToastMessage(`Component error ${designator}: ${eMes}`, ESYS_ToastMessageType.ERROR);
             return undefined;
         }
     });
@@ -175,19 +177,18 @@ const findPin = async (designator: string, pin_: unknown, placeComponents: Place
     return { pin: pin, isExternal, component };
 };
 
-// eslint-disable-next-line complexity
 async function drawEdges(edges: CircuitAssembly['edges'], components: CircuitAssembly['components'], placeComponents: PlacedComponents, offset: Offset = { x: 0, y: 0 }) {
-    const pointToArr = (p: any) => {
+    const pointToArr = (p: { x: number, y: number }) => {
         const { x, y } = applyOffset(p.x, p.y, offset);
         return [x, -y];
     }
 
-    const searchSignalName = (designator: string, pin: any) => {
+    const searchSignalName = (designator: string, pin: unknown) => {
         return components
             .find(comp => comp.designator === designator)?.pins?.find(p => Number(pin) === Number(p.pin_number))?.signal_name;
     }
 
-    const getPinPos = (srcpin: Awaited<ReturnType<typeof findPin>>, defaultP: any) => {
+    const getPinPos = (srcpin: Awaited<ReturnType<typeof findPin>>, defaultP: { x: number, y: number }) => {
         const srcPinPos = {
             x: srcpin?.pin?.getState_X() ?? 0,
             y: srcpin?.pin?.getState_Y() ?? 0,
@@ -294,8 +295,6 @@ async function palceNet(nets: CircuitAssembly['added_net'], placeComponents: Pla
         const pinX = pin.pin.getState_X();
         const pinY = pin.pin.getState_Y();
 
-        let startX = pinX;
-        let startY = pinY;
         let endX = pinX;
         let endY = pinY;
 
@@ -315,7 +314,7 @@ async function palceNet(nets: CircuitAssembly['added_net'], placeComponents: Pla
         }
 
         try {
-            await eda.sch_PrimitiveWire.create([startX, startY, endX, endY], net.net);
+            await eda.sch_PrimitiveWire.create([pinX, pinY, endX, endY], net.net);
         } catch (err) {
             eda.sys_Message.showToastMessage(`Wire error: ${(err as any).message}`, ESYS_ToastMessageType.ERROR);
         }
@@ -330,7 +329,7 @@ export async function assembleCircuit(circuit: CircuitAssembly) {
     const offset: Offset = { x: 0, y: 0 };
 
     const otions = {
-        centered: (circuit as any).assembly_options?.centered ?? true
+        centered: circuit.assembly_options?.centered ?? true
     };
 
     if (root)

@@ -99,7 +99,7 @@ export default function useChat() {
 
             const response = await fetchWithTask({
                 url: '/v2/chat',
-                body: JSON.stringify(body),
+                body: body,
                 fetchOptions: { signal: controller.signal },
                 onProgress: (status) => {
                     progressStatus.value = status as string;

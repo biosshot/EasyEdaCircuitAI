@@ -5,7 +5,7 @@ import { defaultStorage, IStorage } from './storage';
 export interface ChatMessage {
     role: 'human' | 'ai';
     content: string;
-    options?: Record<string, any>;
+    options?: Record<string, unknown>;
 }
 
 export interface ChatSession {

@@ -37,7 +37,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import DOMPurify from 'dompurify'
 import { markdown } from '../../utils/markdown'
 import ComponentViewer from './component/ComponentViewer.vue'
@@ -55,8 +55,16 @@ const emit = defineEmits<{
     'edit-message': [string]
 }>();
 
-const isEditing = ref(false)
-const editedContent = ref('')
+const isEditing = ref(false);
+const editedContent = ref('');
+
+watch([() => props.message, () => props.idx],
+    () => {
+        isEditing.value = false;
+        editedContent.value = '';
+    },
+    { deep: true }
+);
 
 // Парсим сообщение от ассистента один раз
 const parsedMessage = computed(() => {

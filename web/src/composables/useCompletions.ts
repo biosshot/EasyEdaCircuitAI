@@ -43,13 +43,13 @@ export function useCompletions() {
 
             const result = await fetchWithTask({
                 url: '/v1/completions/list',
-                body: JSON.stringify({
+                body: {
                     circuit,
                     llmSettings: {
                         provider: settingsStore.getSetting('apiProvider'),
                         apiKey: settingsStore.getSetting('apiKey'),
                     },
-                }),
+                },
                 fetchOptions: { signal: currentAbortController.value.signal },
                 onProgress: handleProgress,
             });
@@ -98,14 +98,14 @@ export function useCompletions() {
 
             const result = await fetchWithTask({
                 url: '/v1/completions/make',
-                body: JSON.stringify({
+                body: {
                     circuit,
                     promt: actionToApply, // Note: likely typo; should be "prompt"
                     llmSettings: {
                         provider: settingsStore.getSetting('apiProvider'),
                         apiKey: settingsStore.getSetting('apiKey'),
                     },
-                }),
+                },
                 fetchOptions: { signal: currentAbortController.value.signal },
                 onProgress: handleProgress,
             });

@@ -18,6 +18,5 @@ const emit = defineEmits(['retry', 'edit']);
 .message-controls {
     display: flex;
     flex-direction: row;
-    justify-content: flex-end;
 }
 </style>

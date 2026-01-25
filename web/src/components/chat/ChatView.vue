@@ -342,4 +342,23 @@ button[disabled],
 .error-container {
   margin: 8px 0;
 }
+
+.message {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  max-width: 100%;
+}
+
+.message.ai .avatar {
+  background-color: var(--color-primary);
+  border-radius: 50%;
+  min-width: 32px;
+  max-width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-on-primary);
+}
 </style>

@@ -1,8 +1,14 @@
-import { marked } from 'marked'
+import { marked, TokenizerExtension } from 'marked'
 import hljs from 'highlight.js';
 import katex from 'katex';
 
-(window as any).hljs = hljs;
+declare global {
+    interface Window {
+        hljs: typeof hljs;
+    }
+}
+
+window.hljs = hljs;
 
 const inlineRule = /^(\${1,2})(?!\$)((?:\\.|[^\\\n])*?(?:\\.|[^\\\n\$]))\1(?=[\s?!\.,:？！。，：]|$)/;
 const inlineRuleNonStandard = /^(\${1,2})(?!\$)((?:\\.|[^\\\n])*?(?:\\.|[^\\\n\$]))\1/; // Non-standard, even if there are no spaces before and after $ or $$, try to parse
@@ -20,17 +26,17 @@ function markedKatex(options = {}) {
     };
 }
 
-function createRenderer(options: any, newlineAfter: any) {
-    return (token: any) => katex.renderToString(token.text, { ...options, displayMode: token.displayMode }) + (newlineAfter ? '\n' : '');
+function createRenderer(options: object, newlineAfter: boolean) {
+    return (token: { text: string, displayMode: boolean }) => katex.renderToString(token.text, { ...options, displayMode: token.displayMode }) + (newlineAfter ? '\n' : '');
 }
 
-function inlineKatex(options: any, renderer: any) {
-    const nonStandard = options && options.nonStandard;
+function inlineKatex(options: object, renderer: unknown): TokenizerExtension {
+    const nonStandard = 'nonStandard' in options && options.nonStandard;
     const ruleReg = nonStandard ? inlineRuleNonStandard : inlineRule;
     return {
         name: 'inlineKatex',
         level: 'inline',
-        start(src: any) {
+        start(src: string) {
             let index;
             let indexSrc = src;
 
@@ -51,7 +57,7 @@ function inlineKatex(options: any, renderer: any) {
                 indexSrc = indexSrc.substring(index + 1).replace(/^\$+/, '');
             }
         },
-        tokenizer(src: any, tokens: any) {
+        tokenizer(src: string, tokens: unknown) {
             const match = src.match(ruleReg);
 
             if (match) {
@@ -64,14 +70,14 @@ function inlineKatex(options: any, renderer: any) {
             }
         },
         renderer,
-    };
+    } as TokenizerExtension;
 }
 
-function blockKatex(options: any, renderer: any) {
+function blockKatex(options: object, renderer: unknown): TokenizerExtension {
     return {
         name: 'blockKatex',
         level: 'block',
-        tokenizer(src: any, tokens: any) {
+        tokenizer(src: string, tokens: unknown) {
             const match = src.match(blockRule);
             if (match) {
                 return {
@@ -83,7 +89,7 @@ function blockKatex(options: any, renderer: any) {
             }
         },
         renderer,
-    };
+    } as TokenizerExtension;
 }
 
 marked.use(markedKatex({ throwOnError: false, nonStandard: true }));
@@ -100,15 +106,15 @@ marked.use({
 
             if (lang) {
                 try {
-                    if ((window as any).hljs.getLanguage(lang)) {
-                        return `<div class="code-block">${header}<pre><code class="language-${lang} hljs">${(window as any).hljs.highlight(code, { language: lang }).value}</code></pre></div>`;
+                    if (window.hljs.getLanguage(lang)) {
+                        return `<div class="code-block">${header}<pre><code class="language-${lang} hljs">${window.hljs.highlight(code, { language: lang }).value}</code></pre></div>`;
                     }
                 } catch (err) {
                     console.error('Highlight error:', err);
                 }
             }
 
-            return `<div class="code-block">${header}<pre><code class="hljs">${(window as any).hljs.highlightAuto(code).value}</code></pre></div>`;
+            return `<div class="code-block">${header}<pre><code class="hljs">${window.hljs.highlightAuto(code).value}</code></pre></div>`;
         },
         link({ href, title, text }) {
             return `<a href="${href}" target="_blank" rel="noopener noreferrer"${title ? ` title="${title}"` : ''}>${text}</a>`;

@@ -20,11 +20,16 @@ import { assembleCircuit } from './eda/assemble';
 import extension from '../extension.json';
 import { getSchematic } from './eda/schematic';
 
-(eda as any).assembleCircuit = assembleCircuit;
-(eda as any).getSchematic = getSchematic;
+declare global {
+	interface EDA {
+		assembleCircuit: typeof assembleCircuit,
+		getSchematic: typeof getSchematic,
+	}
+}
 
+eda.assembleCircuit = assembleCircuit;
+eda.getSchematic = getSchematic;
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function activate(status?: 'onStartupFinished', arg?: string) { }
 
 export async function about() {
@@ -37,7 +42,8 @@ export async function openInterface() {
 }
 
 export async function importCircuit() {
-	eda.sys_FileSystem.openReadFileDialog(undefined, false).then(async (file: any) => {
+	eda.sys_FileSystem.openReadFileDialog(undefined, false).then(async (file) => {
+		if (!file) return eda.sys_Message.showToastMessage("No file", ESYS_ToastMessageType.ERROR);
 		const text = await file.text();
 		const json = JSON.parse(text);
 		assembleCircuit(json);
@@ -201,7 +207,7 @@ function parseLine(BOM: any[]) {
 		const pline = lines.at(-1);
 
 		const [preg, ptype] = getElementLabel(pline?.startDesignator ?? "");
-		const [lreg, type] = getElementLabel(line.Designator);
+		const [lreg, type] = getElementLabel(line?.Designator);
 
 		const [part, desc] = normLine(line);
 
@@ -269,7 +275,6 @@ export async function exportBomGOST() {
 	const grouped: Record<string, Line[]> = {};
 
 	for (const line of lines) {
-		// eslint-disable-next-line @typescript-eslint/no-unused-vars
 		const [_, type] = getElementLabel(line.startDesignator);
 
 		if (!type) {
@@ -285,10 +290,10 @@ export async function exportBomGOST() {
 	}
 
 	const getGroupTexts = (group: Line[]) => {
-		let designators = [];
-		let names = [];
-		let quantities = [];
-		let descs = [];
+		const designators = [];
+		const names = [];
+		const quantities = [];
+		const descs = [];
 
 		for (const line of group) {
 			if (!line.endDesignator)
@@ -406,7 +411,7 @@ export async function exportBomGOST() {
 			descs,
 		} = getGroupTexts(data)
 
-		let avalLines = getCurrentPageMaxLines() - currentLine;
+		const avalLines = getCurrentPageMaxLines() - currentLine;
 
 		if (avalLines < 4) {
 			await newPage();

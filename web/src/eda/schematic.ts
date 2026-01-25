@@ -1,11 +1,18 @@
-import { ExplainCircuit } from "../types/circuit";
+import { CircuitAssembly, ExplainCircuit } from "../types/circuit";
 import { isEasyEda } from "./utils";
 // @ts-ignore
 import type _ from '@jlceda/pro-api-types';
 
-export const getSchematic = async (circuit: any) => {
-    if (isEasyEda() && 'getSchematic' in eda && typeof eda.getSchematic === 'function') {
-        return await eda.getSchematic(circuit) as ExplainCircuit;
+declare global {
+    interface EDA {
+        assembleCircuit?: (circuit: CircuitAssembly) => Promise<void>,
+        getSchematic?: (primitiveIds?: string[]) => Promise<ExplainCircuit>,
+    }
+}
+
+export const getSchematic = async (primitiveIds: string[]) => {
+    if (isEasyEda() && typeof eda.getSchematic === 'function') {
+        return await eda.getSchematic(primitiveIds) as ExplainCircuit;
     }
     else {
         throw new Error('Fail get circuit');
