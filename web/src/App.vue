@@ -10,6 +10,12 @@
       </template>
     </Navbar>
 
+    <div v-if="hasRecorder" class="backwards-nav">
+      <span class="line"></span>
+      <IconButton @click="backward" icon="Bookmark" class="backward" :size="11">Cancal last changes</IconButton>
+      <span class="line"></span>
+    </div>
+
     <main>
       <KeepAlive>
         <ChatView v-if="activeTab === 'chat'" ref="chatViewRef" />
@@ -25,7 +31,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, onMounted, watchEffect, Component } from 'vue';
+import { computed, ref, onMounted, watchEffect, Component, reactive, onScopeDispose } from 'vue';
 import { useAppStore } from './stores/app-store';
 import { setTheme } from './composables/useTheme';
 import Navbar from './components/layout/Navbar.vue';
@@ -37,6 +43,37 @@ import { useSettingsStore } from './stores/settings-store';
 import SettingsControls from './components/settings/SettingsControls.vue';
 import { __MODE__ } from './mode';
 import { ThemeName } from './theme/themes';
+import IconButton from './components/shared/IconButton.vue';
+import { isEasyEda } from './eda/utils';
+
+declare global {
+  interface EDA {
+    lastChangesRecorder?: {
+      backwards: () => void;
+      isEnded: () => boolean;
+    },
+  }
+}
+const recorderRef = ref<EDA['lastChangesRecorder']>(undefined);
+
+let intervalId: number | null = null;
+
+if (isEasyEda()) {
+  intervalId = window.setInterval(() => {
+    recorderRef.value = eda.lastChangesRecorder;
+  }, 200);
+
+  onScopeDispose(() => {
+    if (intervalId) clearInterval(intervalId);
+  });
+}
+
+const hasRecorder = computed(() => isEasyEda() && recorderRef.value);
+
+const backward = () => {
+  if (hasRecorder.value)
+    eda.lastChangesRecorder?.backwards();
+}
 
 const store = useAppStore();
 const settingsStore = useSettingsStore();
@@ -153,5 +190,25 @@ body {
 /* Дополнительно: при наведении на область прокрутки — улучшаем вид */
 *::-webkit-scrollbar-thumb:active {
   background: var(--color-border-light);
+}
+
+.backwards-nav {
+  width: 100%;
+  display: flex;
+  position: absolute;
+  top: 35px;
+  align-items: center;
+  z-index: 5;
+}
+
+.backward {
+  font-size: 11px;
+  color: #888;
+}
+
+.line {
+  flex-grow: 1;
+  border-top: 1px dashed var(--color-border-dark);
+  margin-left: 8px;
 }
 </style>

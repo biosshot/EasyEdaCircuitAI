@@ -2,7 +2,7 @@
   <div v-if="isAvatar">
     <img :src="name" :style="{ width: '100%', borderRadius: '50%', objectFit: 'cover' }" @error="handleImageError" />
   </div>
-  <component v-else style="margin: 6px;" :is="iconComponent" :size="props.size ?? 24" :color="props.color" />
+  <component v-else style="margin: 5px;" :is="iconComponent" :size="props.size ?? 24" :color="props.color" />
 </template>
 
 <script setup lang="ts">
@@ -11,7 +11,8 @@ import {
   CircleAlert, RotateCw, Play, Zap, Cpu, CircleStop, User, Send, FileText, Search,
   MessageSquare, BoxSelect, AudioWaveform, Settings, PauseCircle, Plus, History,
   X, Trash2, SendHorizonal, ListRestart, ChevronUp, ChevronDown, Check, Replace,
-  CircleCheckBig, Pencil
+  CircleCheckBig, Pencil,
+  Bookmark
 } from 'lucide-vue-next';
 
 const icons: Record<string, FunctionalComponent> = {
@@ -19,7 +20,7 @@ const icons: Record<string, FunctionalComponent> = {
   BoxSelect, AudioWaveform, Settings, PauseCircle, Plus,
   History, X, Trash2, SendHorizonal, CircleStop, ListRestart,
   ChevronUp, ChevronDown, Check, Play, CircleAlert, RotateCw, Replace,
-  CircleCheckBig, Pencil
+  CircleCheckBig, Pencil, Bookmark
 };
 
 const props = defineProps<{
